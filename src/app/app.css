@@ -1,0 +1,15 @@
+/* Make the app background transparent and avoid intercepting clicks by default.
+	 Interactive overlay components must set pointer-events:auto on their host or elements.
+*/
+html,
+body,
+app-root {
+  background: transparent !important;
+  pointer-events: none; /* let clicks pass through unless a child enables pointer-events */
+}
+
+/* Ensure router outlet or main areas stay transparent */
+main,
+#overlay-root {
+  background: transparent !important;
+}
