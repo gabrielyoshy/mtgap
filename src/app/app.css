@@ -1,15 +1,53 @@
-/* Make the app background transparent and avoid intercepting clicks by default.
-	 Interactive overlay components must set pointer-events:auto on their host or elements.
-*/
-html,
-body,
-app-root {
-  background: transparent !important;
-  pointer-events: none; /* let clicks pass through unless a child enables pointer-events */
+.overlay-container {
+  width: 100vw;
+  height: 100vh;
+  /* El contenedor NO debe tener pointer-events: none aquí, 
+     porque lo controlamos vía Electron, pero si quieres seguridad extra: */
+  pointer-events: none;
 }
 
-/* Ensure router outlet or main areas stay transparent */
-main,
-#overlay-root {
-  background: transparent !important;
+.control-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 250px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid #d59345;
+  border-radius: 8px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+
+  /* IMPORTANTE: Reactivamos los eventos del mouse para este elemento */
+  pointer-events: auto;
+  cursor: default;
+  overflow: hidden;
+}
+
+.drag-handle {
+  background: #d59345;
+  color: black;
+  padding: 5px;
+  text-align: center;
+  font-weight: bold;
+  cursor: move; /* Icono de mover */
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.content {
+  padding: 15px;
+
+  button {
+    background: #444;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+
+    &:hover {
+      background: #666;
+    }
+  }
 }

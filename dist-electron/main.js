@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var electron_1 = require("electron");
-var path = require("path");
-var win = null;
+const electron_1 = require("electron");
+const path = require("path");
+let win = null;
 function createWindow() {
-    var _a = electron_1.screen.getPrimaryDisplay().workAreaSize, width = _a.width, height = _a.height;
+    const { width, height } = electron_1.screen.getPrimaryDisplay().workAreaSize;
     win = new electron_1.BrowserWindow({
         width: width,
         height: height,
@@ -19,7 +19,7 @@ function createWindow() {
         },
     });
     // LÓGICA DE CONEXIÓN:
-    var isDev = process.argv.includes('--serve');
+    const isDev = process.argv.includes('--serve');
     if (isDev) {
         // En desarrollo: Carga el servidor de Angular (ng serve)
         win.loadURL('http://localhost:4200');
@@ -29,18 +29,19 @@ function createWindow() {
     else {
         // En producción: Carga el index.html generado en la carpeta dist
         // Asegúrate que esta ruta coincida con tu output en angular.json
-        win.loadURL("file://".concat(__dirname, "/../dist/MTGAP/browser/index.html"));
+        win.loadURL(`file://${__dirname}/../dist/MTGAP/browser/index.html`);
     }
 }
-electron_1.ipcMain.on('set-ignore-mouse-events', function (event, ignore, options) {
-    var win = electron_1.BrowserWindow.fromWebContents(event.sender);
+electron_1.ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+    const win = electron_1.BrowserWindow.fromWebContents(event.sender);
     // ignore = true  -> Clics traspasan (van al juego)
     // ignore = false -> Clics se quedan en tu app (menú)
-    win === null || win === void 0 ? void 0 : win.setIgnoreMouseEvents(ignore, options);
+    win?.setIgnoreMouseEvents(ignore, options);
 });
 electron_1.app.on('ready', createWindow);
-electron_1.app.on('window-all-closed', function () {
+electron_1.app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         electron_1.app.quit();
     }
 });
+//# sourceMappingURL=main.js.map

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "outDir": "../dist-electron",
+    "rootDir": ".",
+    "sourceMap": true,
+    "strict": true,
+
+    // AGREGA ESTA LÍNEA PARA ARREGLAR EL ERROR:
+    "skipLibCheck": true,
+
+    // Opcional: Asegura que Electron no se confunda con los tipos del DOM
+    "lib": ["es2020"]
+  },
+  "include": ["**/*.ts"]
+}

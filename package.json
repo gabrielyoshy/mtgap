@@ -21,12 +21,9 @@
   },
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "electron": "ng build --base-href ./ && electron .",
-    "package": "electron-builder"
+    "start": "concurrently \"npm run electron:serve\" \"npm run ng:serve\"",
+    "ng:serve": "ng serve",
+    "electron:serve": "wait-on http://localhost:4200 && tsc -p electron/tsconfig.json && electron . --serve"
   },
   "prettier": {
     "printWidth": 100,
@@ -42,29 +39,32 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/common": "^20.3.0",
-    "@angular/compiler": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "@angular/forms": "^20.3.0",
-    "@angular/platform-browser": "^20.3.0",
-    "@angular/router": "^20.3.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "@angular/cdk": "^21.0.5",
+    "@angular/common": "^21.0.6",
+    "@angular/compiler": "^21.0.6",
+    "@angular/core": "^21.0.6",
+    "@angular/forms": "^21.0.6",
+    "@angular/platform-browser": "^21.0.6",
+    "@angular/router": "^21.0.6",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@angular/build": "^20.3.7",
-    "@angular/cli": "^20.3.7",
-    "@angular/compiler-cli": "^20.3.0",
-    "@types/jasmine": "~5.1.0",
-    "electron": "^38.4.0",
+    "@angular/build": "^21.0.4",
+    "@angular/cli": "^21.0.4",
+    "@angular/compiler-cli": "^21.0.6",
+    "@types/jasmine": "~5.1.13",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.7",
     "electron-builder": "^26.0.12",
-    "jasmine-core": "~5.9.0",
+    "jasmine-core": "~5.13.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "prettier": "3.6.2",
-    "typescript": "~5.9.2"
+    "prettier": "3.7.4",
+    "typescript": "~5.9.2",
+    "wait-on": "^9.0.3"
   }
 }

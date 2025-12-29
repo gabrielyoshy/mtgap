@@ -1,15 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var electron_1 = require("electron");
+const electron_1 = require("electron");
 // Definimos la API que Angular podrá ver
 electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     // Angular escucha actualizaciones del draft
-    onDraftUpdate: function (callback) {
-        return electron_1.ipcRenderer.on('draft-update', function (_event, value) { return callback(value); });
-    },
+    onDraftUpdate: (callback) => electron_1.ipcRenderer.on('draft-update', (_event, value) => callback(value)),
     // Angular pide iniciar la lectura de logs
-    startLogWatcher: function () { return electron_1.ipcRenderer.send('start-watching-logs'); },
-    setIgnoreMouseEvents: function (ignore) {
+    startLogWatcher: () => electron_1.ipcRenderer.send('start-watching-logs'),
+    setIgnoreMouseEvents: (ignore) => {
         if (ignore) {
             // forward: true es CRÍTICO: permite que el mouse "pase" pero que JavaScript
             // aún detecte el movimiento (para saber cuándo volvemos a entrar al menú)
@@ -20,3 +18,4 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
         }
     },
 });
+//# sourceMappingURL=preload.js.map
