@@ -1,0 +1,12 @@
+{
+  "name": "overlay draft Magic Arena",
+  "description": "Quiero que me generes un overlay para Magic Arena que cuando estoy en un draft, pueda ver las cartas que estan disponibles para pickear, y le agregue la informacion de 17lands.com. y que esto se bien",
+  "instructions": "Genera un overlay para Magic Arena que muestre las cartas disponibles para pickear durante un draft, incluyendo información relevante de 17lands.com como tasas de pick, win rates y sinergias. Asegúrate de que el diseño sea limpio y fácil de leer, con colores y tipografías que complementen la estética de Magic Arena. Incluye secciones claras para cada carta, con iconos o gráficos que representen la información adicional de manera visualmente atractiva.",
+  "tecnologies": ["angular 20", "electron"],
+  "requerements": [
+    "El overlay debe integrarse perfectamente con la interfaz de Magic Arena.",
+    "La información de 17lands.com debe actualizarse en tiempo real durante el draft.",
+    "Utilizaremos un enfoque frontend con Angular 20 para la construcción del overlay.",
+    "Electron se utilizara para empaquetar la aplicación como una aplicación de escritorio y que nos permita leer datos de la aplicacion de Magic Arena"
+  ]
+}
