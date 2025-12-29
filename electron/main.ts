@@ -1,7 +1,9 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, screen, ipcMain, Menu } from 'electron';
 import * as path from 'path';
+import { LogWatcher } from './log-watcher';
 
 let win: BrowserWindow | null = null;
+let watcher: LogWatcher | null = null;
 
 function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
@@ -33,6 +35,19 @@ function createWindow() {
     // Asegúrate que esta ruta coincida con tu output en angular.json
     win.loadURL(`file://${__dirname}/../dist/MTGAP/browser/index.html`);
   }
+
+  // INICIALIZAR EL WATCHER
+  watcher = new LogWatcher();
+
+  // Escuchar eventos del watcher
+  watcher.on('draft-pack', (data) => {
+    console.log('📦 Pack detectado! Enviando a Angular...');
+    // Enviamos los datos a la ventana de Angular
+    win?.webContents.send('draft-update', data);
+  });
+
+  // Arrancarlo
+  watcher.start();
 }
 
 ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
@@ -42,10 +57,29 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
   win?.setIgnoreMouseEvents(ignore, options);
 });
 
+// ESCUCHA: Angular nos pide simular un draft
+ipcMain.on('dev-simulate-draft', (event) => {
+  console.log('🧪 Recibido comando de simulación desde Angular');
+
+  const win = BrowserWindow.fromWebContents(event.sender);
+
+  // Respondemos con datos falsos (IDs reales de MTG Arena - Set Foundations)
+  // 87834 = Llanowar Elves
+  // 87985 = Serra Angel
+  // 88022 = Negate
+  win?.webContents.send('draft-update', {
+    SelfPack: ['87834', '87985', '88022'],
+  });
+});
+
 app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('will-quit', () => {
+  watcher?.stop();
 });

@@ -17,5 +17,6 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
             electron_1.ipcRenderer.send('set-ignore-mouse-events', false);
         }
     },
+    simulateDraft: () => electron_1.ipcRenderer.send('dev-simulate-draft'),
 });
 //# sourceMappingURL=preload.js.map

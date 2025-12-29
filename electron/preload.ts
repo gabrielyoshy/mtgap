@@ -18,4 +18,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.send('set-ignore-mouse-events', false);
     }
   },
+
+  simulateDraft: () => ipcRenderer.send('dev-simulate-draft'),
 });

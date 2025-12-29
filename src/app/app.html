@@ -1,11 +1,9 @@
-<div class="overlay-container">
-  <div class="control-panel" cdkDrag (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-    <div class="drag-handle" cdkDragHandle>✥ Mover</div>
+<div class="control-panel" cdkDrag (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+  <div class="drag-handle" cdkDragHandle>🛠️ PANEL DEV</div>
 
-    <div class="content">
-      <h3>MTGA Companion</h3>
-      <button>Reset Draft</button>
-      <div class="status">Waiting for draft...</div>
-    </div>
+  <div class="content">
+    <h3>MTGA Companion</h3>
+
+    <button (click)="triggerSimulation()" class="sim-btn">🧪 Simular Pack</button>
   </div>
 </div>

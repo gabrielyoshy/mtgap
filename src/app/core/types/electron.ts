@@ -3,6 +3,8 @@ export interface ElectronAPI {
   startLogWatcher: () => void;
 
   setIgnoreMouseEvents: (ignore: boolean) => void;
+
+  simulateDraft: () => void;
 }
 
 declare global {
