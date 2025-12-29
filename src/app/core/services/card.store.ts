@@ -24,11 +24,15 @@ export interface DraftCard {
   mtga_id: number;
   name: string;
   imageUrl: string;
+  // Nuevos campos
+  color: string;
+  avg_seen: number;
   stats?: {
     gihWr: string;
+    gihWrValue: number; // Guardamos el número puro para ordenar fácil
     alsa: string;
     tier: string;
-    iwd?: string;
+    iwd: string;
   };
 }
 
@@ -68,17 +72,23 @@ export const CardStore = signalStore(
 
       return ids.map((id) => {
         const raw = entities[id];
-
         if (raw) {
           return {
             mtga_id: raw.mtga_id,
             name: raw.name,
             imageUrl:
               raw.url || `https://static.wikia.nocookie.net/mtgalaxy/images/${raw.mtga_id}.jpg`,
+
+            // Mapeo de Color y Cantidad de Juegos
+            color: raw.color || 'C', // 'C' = Colorless/Artifact si viene vacío
+            avg_seen: raw.avg_seen || 0,
+
             stats: {
               gihWr: raw.ever_drawn_win_rate
                 ? (raw.ever_drawn_win_rate * 100).toFixed(1) + '%'
                 : '-',
+              // Guardamos el valor numérico para lógica de recomendación
+              gihWrValue: raw.ever_drawn_win_rate ? raw.ever_drawn_win_rate * 100 : 0,
               alsa: raw.avg_seen ? raw.avg_seen.toFixed(2) : '-',
               tier: calculateTier(raw.ever_drawn_win_rate),
               iwd: raw.drawn_improvement_win_rate

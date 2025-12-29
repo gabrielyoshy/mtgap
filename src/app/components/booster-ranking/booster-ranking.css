@@ -151,3 +151,80 @@ td.mat-mdc-cell {
   color: white;
   font-weight: bold;
 }
+
+/* Recomendación (Trofeo) */
+.best-pick-badge {
+  color: #ffd700; /* Dorado */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4));
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Fila Recomendada */
+.recommended-row {
+  background: rgba(255, 215, 0, 0.05); /* Fondo dorado muy sutil */
+  border-left: 3px solid #ffd700; /* Borde dorado a la izquierda */
+
+  &:hover {
+    background: rgba(255, 215, 0, 0.1) !important;
+  }
+}
+
+.highlight-name {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* Colores de Maná (Círculos) */
+.mana-container {
+  display: flex;
+  gap: 2px;
+}
+
+.mana-symbol {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+
+  &.mana-w {
+    background: #f8e7b9;
+    border: 1px solid #dcdcdc;
+  } /* White */
+  &.mana-u {
+    background: #0e68ab;
+    border: 1px solid #0a4f8a;
+  } /* Blue */
+  &.mana-b {
+    background: #150b00;
+    border: 1px solid #444;
+  } /* Black */
+  &.mana-r {
+    background: #d3202a;
+    border: 1px solid #a61620;
+  } /* Red */
+  &.mana-g {
+    background: #00733e;
+    border: 1px solid #00562e;
+  } /* Green */
+  &.mana-c {
+    background: #ccc;
+  } /* Colorless */
+}
+
+/* Alineación de columnas numéricas */
+.text-right {
+  text-align: right;
+  justify-content: flex-end;
+}
+.text-small {
+  font-size: 0.8rem;
+}

@@ -23,52 +23,70 @@ import { CardStore, DraftCard } from '../../core/services/card.store';
 export class BoosterRanking implements AfterViewInit {
   readonly store = inject(CardStore);
 
-  // Columnas a mostrar
-  displayedColumns: string[] = ['image', 'name', 'tier', 'gihWr', 'alsa', 'iwd', 'rarity'];
+  // Añadimos 'pick' (recomendación), 'color' y 'games'
+  displayedColumns: string[] = [
+    'pick',
+    'image',
+    'name',
+    'color',
+    'tier',
+    'gihWr',
+    'iwd',
+    'alsa',
+    'games',
+  ];
 
-  // Fuente de datos de Material
   dataSource = new MatTableDataSource<DraftCard>();
+  bestPickId: number | null = null; // Para marcar la mejor carta
 
-  // Referencias al HTML para Ordenamiento y Paginación
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
-    // MAGIA: Sincronizamos el Store (Signal) con la Tabla (DataSource)
     effect(() => {
       const cards = this.store.filteredCards();
+
+      // Lógica de Recomendación:
+      // Encontramos la carta con mayor GIH WR (ignorando las que tienen pocos juegos si quieres)
+      const bestCard = [...cards].sort(
+        (a, b) => (b.stats?.gihWrValue || 0) - (a.stats?.gihWrValue || 0),
+      )[0];
+      this.bestPickId = bestCard ? bestCard.mtga_id : null;
+
       this.dataSource.data = cards;
 
-      // Opcional: Si cambian los datos, volver a la página 1
-      if (this.paginator) {
-        this.paginator.firstPage();
+      // Si cambian los datos, sugerimos ordenar por Pick (GIH WR)
+      if (this.sort) {
+        this.sort.sort({ id: 'gihWr', start: 'desc', disableClear: false });
       }
     });
   }
 
   ngAfterViewInit() {
-    // Vinculamos los componentes de Material al DataSource
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
 
-    // Configuración custom para ordenar correctamente los porcentajes (strings)
+    // Configuración custom para ordenar números correctamente
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
+        case 'pick':
+          return item.mtga_id === this.bestPickId ? 1 : 0; // El mejor pick va primero
         case 'gihWr':
-          return this.parsePercentage(item.stats?.gihWr);
+          return item.stats?.gihWrValue || 0;
         case 'iwd':
           return this.parsePercentage(item.stats?.iwd);
         case 'alsa':
-          return parseFloat(item.stats?.alsa || '0');
+          return parseFloat(item.stats?.alsa || '99'); // Mayor ALSA al final
+        case 'games':
+          return item.avg_seen;
         case 'tier':
-          return this.tierValue(item.stats?.tier); // Para que S > A > B
+          return this.tierValue(item.stats?.tier);
         default:
           return (item as any)[property];
       }
     };
   }
 
-  // Helpers de UI
   parsePercentage(val?: string): number {
     if (!val || val === '-') return -999;
     return parseFloat(val.replace('%', '').replace('pp', ''));
@@ -79,12 +97,12 @@ export class BoosterRanking implements AfterViewInit {
     return map[tier || '-'] || 0;
   }
 
-  getWrColor(wrString?: string): string {
-    const wr = this.parsePercentage(wrString);
-    if (wr >= 60) return '#d8b4fe'; // Morado
-    if (wr >= 57) return '#86efac'; // Verde
-    if (wr >= 54) return '#67e8f9'; // Azul
-    if (wr < 50 && wr > 0) return '#fca5a5'; // Rojo
-    return '#e5e7eb'; // Gris
+  getWrColor(val?: number): string {
+    if (!val) return '#e5e7eb';
+    if (val >= 60) return '#d8b4fe'; // Mítico
+    if (val >= 57) return '#86efac'; // Verde
+    if (val >= 54) return '#67e8f9'; // Azul
+    if (val < 50) return '#fca5a5'; // Rojo
+    return '#e5e7eb';
   }
 }
