@@ -1,0 +1,7 @@
+@for (card of store.filteredCards(); track card.mtga_id) {
+  <div class="card-row">
+    <img [src]="card.imageUrl" height="50" />
+    <span>{{ card.name }}</span>
+    <strong>{{ card.stats?.gihWr || 'N/A' }}</strong>
+  </div>
+}

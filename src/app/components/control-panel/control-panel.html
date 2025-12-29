@@ -1,0 +1,15 @@
+<div class="control-panel">
+  <h3>MTGA Companion</h3>
+
+  <mat-form-field>
+    <mat-label>Collection</mat-label>
+    <mat-select [formControl]="collectionFormControl">
+      <mat-option [value]="'TLA'">{{ 'TLA' }}</mat-option>
+      <mat-option [value]="'FIN'">{{ 'FIN' }}</mat-option>
+      <mat-option [value]="'EOE'">{{ 'EOE' }}</mat-option>
+      <mat-option [value]="'TDM'">{{ 'TDM' }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button (click)="triggerSimulation()" class="sim-btn">🧪 Simular Pack</button>
+</div>

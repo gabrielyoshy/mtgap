@@ -1,0 +1,37 @@
+/* El menú en sí */
+.control-panel {
+  width: 300px;
+  background-color: rgba(30, 30, 30, 0.95); /* Fondo oscuro casi opaco */
+  border: 2px solid #d59345; /* Borde dorado visible */
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+
+  /* IMPORTANTE: Reactiva el mouse para el menú */
+  pointer-events: auto;
+
+  /* Sombra para que destaque sobre el juego */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+
+  display: block; /* Aseguramos que se comporte como bloque */
+}
+
+.sim-btn {
+  background-color: #4caf50; /* Verde */
+  color: white;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #45a049;
+  }
+
+  &:active {
+    transform: translateY(2px); /* Efecto de presionar */
+  }
+}
