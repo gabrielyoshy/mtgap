@@ -1,14 +1,15 @@
 import { inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tapResponse } from '@ngrx/operators';
-import { patchState, signalStore, type, withComputed, withMethods, withState } from '@ngrx/signals';
-import { setAllEntities, entityConfig, withEntities } from '@ngrx/signals/entities';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+// 1. Importamos withEntities y setAllEntities (ya no necesitamos entityConfig)
+import { setAllEntities, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap } from 'rxjs';
 
 // --- Interfaces ---
 export interface RawStats {
-  mtga_id: number;
+  mtga_id: number; // Asegúrate que esto coincida con la API
   name: string;
   url: string;
   ever_drawn_win_rate: number;
@@ -31,7 +32,7 @@ export interface DraftCard {
   };
 }
 
-// --- Helper Puro (Fuera del Store) ---
+// --- Helper ---
 function calculateTier(wr: number): string {
   if (!wr) return '-';
   if (wr > 0.6) return 'S';
@@ -41,38 +42,34 @@ function calculateTier(wr: number): string {
   return 'D';
 }
 
-// --- Config Entities ---
-const cardsConfig = entityConfig({
-  entity: type<RawStats>(),
-  collection: '_cards',
-  selectId: (card) => card.mtga_id,
-});
-
 export const CardStore = signalStore(
   { providedIn: 'root' },
 
-  // 1. Estado Base (Agregamos filterIds)
   withState({
     currentSet: 'TLA',
-    filterIds: [] as number[], // <--- NUEVO STATE
+    filterIds: [] as number[],
     status: 'idle' as 'idle' | 'loading' | 'loaded' | 'error',
   }),
 
-  // 2. Entidades
-  withEntities(cardsConfig),
+  // 2. CONFIGURACIÓN DIRECTA (Sin nombre de colección)
+  // Al no usar 'collection', las entidades se guardan en 'entityMap' y 'ids' directamente.
+  // Esto es mucho menos propenso a errores.
+  withEntities<RawStats>(),
 
-  // 3. Computed Signals (La magia ocurre aquí)
   withComputed((store) => ({
-    // Este signal se recalcula automáticamente si cambia 'filterIds' O si se cargan datos en '_cards'
     filteredCards: computed(() => {
       const ids = store.filterIds();
-      const entities = store._cardsEntities(); // Diccionario O(1)
+
+      // 3. Accedemos a la colección por defecto (entityMap)
+      const entities = store.entityMap();
+
+      // Debug: Veremos si ahora sí es un objeto { "123": {...} }
+      // console.log('🃏 Mapa de Entidades:', entities);
 
       return ids.map((id) => {
         const raw = entities[id];
 
         if (raw) {
-          // Transformación de RawStats a DraftCard
           return {
             mtga_id: raw.mtga_id,
             name: raw.name,
@@ -90,7 +87,6 @@ export const CardStore = signalStore(
             },
           } as DraftCard;
         } else {
-          // Fallback
           return {
             mtga_id: id,
             name: 'Desconocida / Cargando...',
@@ -102,9 +98,7 @@ export const CardStore = signalStore(
     }),
   })),
 
-  // 4. Métodos
   withMethods((store, http = inject(HttpClient)) => ({
-    // --- Nuevo Método para actualizar el filtro ---
     updateFilterIds(ids: number[]) {
       patchState(store, { filterIds: ids });
     },
@@ -124,7 +118,31 @@ export const CardStore = signalStore(
           return http.get<RawStats[]>(url).pipe(
             tapResponse({
               next: (data) => {
-                patchState(store, setAllEntities(data, cardsConfig), { status: 'loaded' });
+                // 4. VALIDACIÓN DE DATOS (CRÍTICO)
+                // Si la API trae 'arena_id' en vez de 'mtga_id', aquí nos daremos cuenta.
+                if (data.length > 0) {
+                  const first = data[0];
+                  console.log('🔍 Inspección de datos:', first);
+
+                  if (first.mtga_id === undefined) {
+                    console.error(
+                      '⚠️ ALERTA: mtga_id es undefined. Claves disponibles:',
+                      Object.keys(first),
+                    );
+                  }
+                }
+
+                // 5. GUARDADO EXPLÍCITO
+                // Pasamos el selectId AQUÍ MISMO para forzar la indexación.
+                patchState(
+                  store,
+                  setAllEntities(data, {
+                    selectId: (card) => card.mtga_id, // <--- Forzamos la ID aquí
+                  }),
+                  { status: 'loaded' },
+                );
+
+                console.log(`✅ [Store] Datos cargados.`);
               },
               error: (err) => {
                 console.error('Error loading stats:', err);

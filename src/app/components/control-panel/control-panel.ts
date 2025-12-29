@@ -21,7 +21,7 @@ import { CardStore } from '../../core/services/card.store';
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.css',
 })
-export class ControlPanel implements OnInit, AfterViewInit {
+export class ControlPanel implements AfterViewInit {
   draftService = inject(DraftService);
   cardStore = inject(CardStore);
 
@@ -36,12 +36,6 @@ export class ControlPanel implements OnInit, AfterViewInit {
       console.log('🛠️ [ControlPanel] Set cambiado a:', value);
       if (value) this.cardStore.setExpansion(value);
     });
-  }
-
-  ngOnInit() {}
-
-  ngOnDestroy(): void {
-    // destruimos cualquier suscripción o recurso si es necesario
   }
 
   ngAfterViewInit() {
@@ -65,11 +59,13 @@ export class ControlPanel implements OnInit, AfterViewInit {
   }
 
   triggerSimulation() {
-    console.log('🔘 Botón presionado: Pidiendo simulación a Electron...');
-    if (window.electronAPI) {
-      window.electronAPI.simulateDraft();
-    } else {
-      console.error('❌ Electron API no encontrada (¿Estás en el navegador?)');
-    }
+    // console.log('🔘 Botón presionado: Pidiendo simulación a Electron...');
+    // if (window.electronAPI) {
+    //   window.electronAPI.simulateDraft();
+    // } else {
+    //   console.error('❌ Electron API no encontrada (¿Estás en el navegador?)');
+    // }
+
+    this.cardStore.updateFilterIds([97274, 97275, 97276]);
   }
 }

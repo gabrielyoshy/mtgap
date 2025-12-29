@@ -1,7 +1,93 @@
-@for (card of store.filteredCards(); track card.mtga_id) {
-  <div class="card-row">
-    <img [src]="card.imageUrl" height="50" />
-    <span>{{ card.name }}</span>
-    <strong>{{ card.stats?.gihWr || 'N/A' }}</strong>
-  </div>
-}
+<div class="table-container mat-elevation-z8">
+  @if (store.status() === 'loading') {
+    <div class="loading-shade">
+      <span>Actualizando datos de 17Lands...</span>
+    </div>
+  }
+
+  <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
+    <ng-container matColumnDef="image">
+      <th mat-header-cell *matHeaderCellDef>Carta</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="card-thumb">
+          <img [src]="card.imageUrl" loading="lazy" alt="art" />
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+      <td mat-cell *matCellDef="let card">
+        <div class="name-col">
+          <span class="card-name">{{ card.name }}</span>
+          <span class="card-id">ID: {{ card.mtga_id }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="tier">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Tier</th>
+      <td mat-cell *matCellDef="let card">
+        <span class="tier-badge" [attr.data-tier]="card.stats?.tier">
+          {{ card.stats?.tier }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="gihWr">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before">GIH WR</th>
+      <td
+        mat-cell
+        *matCellDef="let card"
+        [style.color]="getWrColor(card.stats?.gihWr)"
+        class="font-bold"
+      >
+        {{ card.stats?.gihWr }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="alsa">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before">ALSA</th>
+      <td mat-cell *matCellDef="let card" class="text-muted">
+        {{ card.stats?.alsa }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="iwd">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Improvement When Drawn"
+      >
+        IWD
+      </th>
+      <td mat-cell *matCellDef="let card">
+        {{ card.stats?.iwd }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="rarity">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Rareza</th>
+      <td mat-cell *matCellDef="let card">
+        <mat-icon [class]="'rarity-' + card.rarity" class="rarity-icon">circle</mat-icon>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="element-row"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="7" style="text-align: center; padding: 20px">
+        No hay cartas seleccionadas o cargadas.
+      </td>
+    </tr>
+  </table>
+
+  <mat-paginator
+    [pageSizeOptions]="[5, 10, 20]"
+    showFirstLastButtons
+    aria-label="Select page"
+  ></mat-paginator>
+</div>

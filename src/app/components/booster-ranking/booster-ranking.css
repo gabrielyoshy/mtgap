@@ -1,159 +1,153 @@
-:host {
-  display: block;
-  font-family: 'Segoe UI', sans-serif;
-  color: #e0e0e0;
-}
-
-.pack-container {
-  background: #1e1e1e;
+/* Contenedor principal */
+.table-container {
+  position: relative;
+  background: #1e1e1e; /* Fondo oscuro */
   border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
+  overflow: hidden;
+  border: 1px solid #333;
 
-/* --- Controles --- */
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.input-group {
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  background: #2c2c2c;
-  border: 1px solid #444;
-  color: white;
-  padding: 8px;
-  border-radius: 4px;
-  width: 300px;
-}
-
-button {
-  background: #007acc;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  background: #005f9e;
-}
-
-/* --- Tabla --- */
-.table-wrapper {
-  overflow-x: auto;
+  /* Sobrescribir estilos base de Material para Dark Mode si es necesario */
+  --mat-table-background-color: #1e1e1e;
+  --mat-table-header-headline-color: #b0b0b0;
+  --mat-table-row-item-label-text-color: #e0e0e0;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
+  background: transparent;
 }
 
-th {
-  text-align: left;
-  color: #888;
-  font-weight: 600;
-  padding: 10px;
-  border-bottom: 2px solid #333;
+/* Headers */
+th.mat-mdc-header-cell {
+  background: #252525;
+  color: #999;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #444;
 }
 
-td {
-  padding: 8px 10px;
+/* Celdas */
+td.mat-mdc-cell {
   border-bottom: 1px solid #333;
-  vertical-align: middle;
+  color: #eee;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
-/* --- Celdas Específicas --- */
-.rank-cell {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #555;
-  text-align: center;
+/* Hover Effect */
+.element-row:hover {
+  background: #2a2a2a;
 }
 
-.img-wrapper {
-  width: 40px;
-  height: 56px;
+/* Imagen Pequeña */
+.card-thumb {
+  width: 45px;
+  height: 60px;
   overflow: hidden;
   border-radius: 4px;
   background: #000;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.1); /* Zoom ligero para quitar bordes */
+  }
 }
 
-.img-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Nombre e ID */
+.name-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.name-cell {
+.card-name {
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
-.id-subtext {
+.card-id {
   font-size: 0.75rem;
   color: #666;
 }
 
-.highlight-stat {
+/* Tier Badges */
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   font-weight: bold;
-  color: #fff;
+  font-size: 0.85rem;
+  color: #121212;
+
+  &[data-tier='S'] {
+    background: #d8b4fe;
+    box-shadow: 0 0 10px rgba(216, 180, 254, 0.4);
+  }
+  &[data-tier='A'] {
+    background: #86efac;
+  }
+  &[data-tier='B'] {
+    background: #67e8f9;
+  }
+  &[data-tier='C'] {
+    background: #cbd5e1;
+  }
+  &[data-tier='D'] {
+    background: #fca5a5;
+  }
+  &[data-tier='-'] {
+    background: #333;
+    color: #666;
+  }
 }
 
+/* Rareza (Puntito de color) */
+.rarity-icon {
+  font-size: 12px;
+  height: 12px;
+  width: 12px;
+
+  &.rarity-mythic {
+    color: #ff8400;
+  }
+  &.rarity-rare {
+    color: #d4af37;
+  }
+  &.rarity-uncommon {
+    color: #c0c0c0;
+  }
+  &.rarity-common {
+    color: #000;
+    filter: invert(1);
+  } /* Blanco en dark mode */
+}
+
+/* Utilidades */
+.font-bold {
+  font-weight: 700;
+}
 .text-muted {
   color: #888;
 }
-.text-right {
-  text-align: right;
-}
-.text-center {
-  text-align: center;
-}
 
-/* --- Badges de Tier --- */
-.tier-badge {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  line-height: 24px;
-  border-radius: 50%;
-  font-size: 0.8rem;
+/* Loading Shade */
+.loading-shade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
   font-weight: bold;
-  color: #000;
-}
-
-.tier-s {
-  background: #dbaaff;
-  box-shadow: 0 0 8px #dbaaff;
-}
-.tier-a {
-  background: #aaffaa;
-}
-.tier-b {
-  background: #aaffff;
-}
-.tier-c {
-  background: #eeeeee;
-}
-.tier-d {
-  background: #ffaaaa;
-}
-.tier-- {
-  background: #444;
-  color: #888;
-} /* Sin datos */
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-  font-style: italic;
 }
