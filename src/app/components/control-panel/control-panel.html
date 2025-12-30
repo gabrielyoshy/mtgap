@@ -62,7 +62,15 @@
       <mat-option [value]="ColorFilter.WUBRG">WUBRG</mat-option>
     </mat-select>
   </mat-form-field>
+  <div class="toggle">
+    <mat-button-toggle-group formControlName="viewMode" aria-label="View Mode">
+      <mat-button-toggle [value]="ViewMode.CardList">Lista</mat-button-toggle>
+      <mat-button-toggle [value]="ViewMode.BoosterRanking">Tabla</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
 
-  <button (click)="triggerSimulation()" class="sim-btn">🧪 Simular Pack</button>
-  <button (click)="trigger2BoosterSimulation()" class="sim-btn">🧪 Simular 2 Boosters</button>
+  <div class="buttons">
+    <button (click)="triggerSimulation()" matButton="filled">Simular Pack</button>
+    <button (click)="trigger2BoosterSimulation()" matButton="filled">Simular 2 Boosters</button>
+  </div>
 </div>

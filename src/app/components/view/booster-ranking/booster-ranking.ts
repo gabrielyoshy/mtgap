@@ -4,7 +4,8 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CardStore, DraftCard } from '../../core/services/card.store';
+import { DraftStore } from '@services';
+import { DraftCard } from '@types';
 
 @Component({
   selector: 'app-booster-ranking',
@@ -13,7 +14,7 @@ import { CardStore, DraftCard } from '../../core/services/card.store';
   styleUrl: './booster-ranking.css',
 })
 export class BoosterRanking implements AfterViewInit {
-  readonly store = inject(CardStore);
+  readonly store = inject(DraftStore);
 
   // Añadimos 'pick' (recomendación), 'color' y 'games'
   displayedColumns: string[] = [

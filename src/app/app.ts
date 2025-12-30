@@ -1,12 +1,14 @@
-import { Component } from '@angular/core';
-
-import { BoosterRanking } from './components/booster-ranking/booster-ranking';
+import { Component, inject } from '@angular/core';
 import { ControlPanel } from './components/control-panel/control-panel';
+import { View } from './components/view/view';
+import { ElectronService } from '@services';
 
 @Component({
   selector: 'app-root',
-  imports: [BoosterRanking, ControlPanel],
+  imports: [ControlPanel, View],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })
-export class App {}
+export class App {
+  electronService = inject(ElectronService);
+}

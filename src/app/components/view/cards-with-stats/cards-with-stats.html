@@ -1,0 +1,44 @@
+@for (card of cards(); track card.mtga_id) {
+  <div class="card-item" [class]="'mythic'">
+    <div class="card-image-wrapper">
+      <img
+        [src]="card.imageUrl || getScryfallImage(card.name)"
+        loading="lazy"
+        alt="{{ card.name }}"
+      />
+
+      <div class="rarity-badge">
+        <span class="symbol">{{ 'a' }}</span>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <div class="card-header">
+        <h3 class="card-name">{{ card.name }}</h3>
+        <span class="mana-cost">{{ 2 }}</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box main-stat" [class]="'stat-godly'">
+          <span class="label">GIH WR</span>
+          <span class="value">{{ 'aa' }}</span>
+        </div>
+
+        <div class="stat-box">
+          <span class="label">ALSA</span>
+          <span class="value">{{ 23 }}</span>
+        </div>
+
+        <div class="stat-box">
+          <span class="label">IWD</span>
+          <span class="value" [style.color]="true ? '#4caf50' : '#ff5252'"> {{ 23 }}pp </span>
+        </div>
+
+        <div class="stat-box">
+          <span class="label"># Games</span>
+          <span class="value dim">{{ card.stats?.gihWrValue }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

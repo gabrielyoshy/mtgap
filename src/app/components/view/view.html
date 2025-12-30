@@ -1,0 +1,8 @@
+@switch (viewMode()) {
+  @case (ViewModeType.CardList) {
+    <app-cards-with-stats> </app-cards-with-stats>
+  }
+  @case (ViewModeType.BoosterRanking) {
+    <app-booster-ranking> </app-booster-ranking>
+  }
+}
