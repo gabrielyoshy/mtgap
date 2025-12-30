@@ -11,26 +11,24 @@ class LogWatcher extends events_1.EventEmitter {
         this.currentSize = 0;
         this.isWatching = false;
         this.checkInterval = null;
-        // Construimos la ruta
+        // NUEVO: Un buffer para guardar líneas cortadas entre chunks
+        this.lineBuffer = '';
         this.logPath = path.join(os.homedir(), 'AppData', 'LocalLow', 'Wizards Of The Coast', 'MTGA', 'Player.log');
     }
     start() {
         console.log('--- INICIANDO LOG WATCHER ---');
         console.log('📂 Ruta objetivo:', this.logPath);
         if (!fs.existsSync(this.logPath)) {
-            console.error('❌ ERROR CRÍTICO: El archivo Player.log NO EXISTE en la ruta indicada.');
-            console.error('👉 Asegúrate de haber abierto el juego al menos una vez.');
+            console.error('❌ ERROR CRÍTICO: El archivo Player.log NO EXISTE.');
             return;
         }
-        // Obtenemos tamaño inicial
         try {
             const stats = fs.statSync(this.logPath);
             this.currentSize = stats.size;
             console.log(`✅ Archivo encontrado. Tamaño inicial: ${this.currentSize} bytes.`);
             this.isWatching = true;
-            // Iniciamos el ciclo de lectura
             this.checkInterval = setInterval(() => this.checkUpdates(), 1000);
-            console.log('👀 Vigilancia activa: Esperando cambios en el archivo...');
+            console.log('👀 Vigilancia activa...');
         }
         catch (error) {
             console.error('❌ Error al acceder al archivo:', error);
@@ -41,14 +39,13 @@ class LogWatcher extends events_1.EventEmitter {
             return;
         try {
             const stats = fs.statSync(this.logPath);
-            // DEBUG: Descomenta esto si quieres ver que el loop funciona (spam en consola)
-            // console.log(`Ciclo: ${this.currentSize} -> ${stats.size}`);
             if (stats.size === this.currentSize)
                 return;
             console.log(`⚡ CAMBIO DETECTADO! Nuevo tamaño: ${stats.size}`);
             if (stats.size < this.currentSize) {
-                console.log('🔄 El archivo se reinició (es más pequeño). Reseteando cursor.');
+                console.log('🔄 El archivo se reinició.');
                 this.currentSize = 0;
+                this.lineBuffer = ''; // Limpiamos buffer si el archivo se reinicia
             }
             const stream = fs.createReadStream(this.logPath, {
                 start: this.currentSize,
@@ -56,63 +53,70 @@ class LogWatcher extends events_1.EventEmitter {
                 encoding: 'utf8',
             });
             stream.on('data', (chunk) => {
-                // Forzamos conversión a string para evitar errores de tipo
-                const text = chunk.toString();
-                this.parseChunk(text);
+                // 1. Añadimos el nuevo chunk a lo que sobró de la vez anterior
+                this.lineBuffer += chunk.toString();
+                // 2. Partimos por saltos de línea
+                const lines = this.lineBuffer.split('\n');
+                // 3. IMPORTANTE: La última línea del array suele estar incompleta
+                // (es el corte del chunk). La sacamos del array y la guardamos para el siguiente ciclo.
+                this.lineBuffer = lines.pop() || '';
+                // 4. Procesamos todas las líneas que SÍ están completas
+                for (const line of lines) {
+                    this.processLineCheck(line);
+                }
             });
             stream.on('end', () => {
+                // Al terminar de leer el bloque actual, actualizamos el tamaño.
+                // Nota: NO procesamos this.lineBuffer aquí, porque esperamos que se complete
+                // en la siguiente lectura si quedó algo pendiente.
                 this.currentSize = stats.size;
+            });
+            stream.on('error', (err) => {
+                console.error('❌ Error en el stream:', err);
             });
         }
         catch (err) {
             console.error('❌ Error leyendo actualización:', err);
         }
     }
-    parseChunk(chunk) {
-        console.log('📄 Procesando texto nuevo...');
-        const lines = chunk.split('\n');
-        lines.forEach((line) => {
-            // MODIFICACIÓN: Ahora buscamos 'Draft.Notify' (Humanos) O 'BotDraft' (Bots)
-            // También verificamos que la línea tenga un JSON ('{') para evitar cabeceras vacías.
-            if ((line.includes('Draft.Notify') || line.includes('BotDraft')) && line.includes('{')) {
-                console.log('🎯 ¡LÍNEA DE DRAFT ENCONTRADA!');
-                this.processDraftLine(line);
-            }
-        });
+    // He renombrado parseChunk a processLineCheck para que sea más claro
+    processLineCheck(line) {
+        // Filtro rápido para no perder tiempo parseando basura
+        if ((line.includes('Draft.Notify') || line.includes('BotDraft')) && line.includes('{')) {
+            this.processDraftLine(line);
+        }
     }
     processDraftLine(line) {
         try {
             const jsonStartIndex = line.indexOf('{');
-            if (jsonStartIndex === -1) {
+            if (jsonStartIndex === -1)
                 return;
-            }
             const jsonString = line.substring(jsonStartIndex);
             let data = JSON.parse(jsonString);
-            // MEJORA: Desenpaquetar el "Payload" si existe.
-            // MTGA a veces devuelve: { CurrentModule: "BotDraft", Payload: "{\"DraftPack\":...}" }
+            // Desempaquetado del Payload (MTGA Log Logic)
             if (data.Payload && typeof data.Payload === 'string') {
                 try {
-                    console.log('🔓 Desempaquetando Payload interno...');
                     const internalData = JSON.parse(data.Payload);
-                    // Fusionamos los datos internos con los externos por si acaso
                     data = { ...data, ...internalData };
                 }
                 catch (innerError) {
-                    console.warn('⚠️ Error parseando el Payload interno, usando data original.', innerError);
+                    // A veces el payload no es JSON, lo ignoramos
                 }
             }
-            console.log('📦 Evento Draft procesado:', data);
-            // Opcional: Validar que realmente tenemos un DraftPack antes de emitir
+            // Validamos si es un evento útil
             if (data.DraftPack) {
+                console.log('📦 Evento Draft PACK encontrado (Cartas detectadas).');
                 this.emit('draft-pack', data);
             }
-            else {
-                // A veces envían eventos de estado sin cartas, puedes decidir si emitirlos o no
-                console.log('ℹ️ Evento de draft sin cartas (probablemente cambio de estado).');
+            else if (data.DraftStatus) {
+                console.log('ℹ️ Evento Draft STATUS (Pick realizado o cambio de fase).');
+                // Opcional: this.emit('draft-status', data);
             }
         }
         catch (e) {
-            console.error('❌ Error parseando JSON:', e);
+            // Si falla aquí, suele ser porque la línea aún no estaba completa,
+            // pero con el sistema de buffer esto no debería ocurrir casi nunca.
+            console.error('❌ Error parseando JSON en processDraftLine:', e);
         }
     }
     stop() {
