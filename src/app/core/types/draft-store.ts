@@ -1,28 +1,56 @@
 export interface RawStats {
   mtga_id: number;
   name: string;
+  color: string;
+  rarity: string;
   url: string;
-  ever_drawn_win_rate: number;
+  url_back: string;
+  types: string[];
+  layout: string;
+  seen_count: number;
   avg_seen: number;
-  rarity?: string;
-  color?: string;
-  types?: string[];
-  drawn_improvement_win_rate?: number;
+  pick_count: number;
+  avg_pick: number;
+  game_count: number;
+  pool_count: number;
+  play_rate: number;
+  win_rate: number;
+  opening_hand_game_count: number;
+  opening_hand_win_rate: number;
+  drawn_game_count: number;
+  drawn_win_rate: number;
+  ever_drawn_game_count: number;
+  ever_drawn_win_rate: number;
+  never_drawn_game_count: number;
+  never_drawn_win_rate: number;
+  drawn_improvement_win_rate: number;
 }
 
 export interface DraftCard {
-  mtga_id: number;
+  mtgaId: number;
   name: string;
   imageUrl: string;
   color: string;
-  avg_seen: number;
-  stats?: {
-    gihWr: string;
-    gihWrValue: number;
-    alsa: string;
-    tier: string;
-    iwd: string;
-  };
+  rarity: string;
+  seenCount: number;
+  avgSeen: number;
+  pickCount: number;
+  avgPick: number;
+  gameCount: number;
+  poolCount: number;
+  playRate: number;
+  winRate: number;
+  openingHandGameCount: number;
+  openingHandWinRate: number;
+  drawnGameCount: number;
+  drawnWinRate: number;
+  everDrawnGameCount: number;
+  everDrawnWinRate: number;
+  neverDrawnGameCount: number;
+  neverDrawnWinRate: number;
+  drawnImprovementWinRate: number;
+  tier: string;
+  bestCard: boolean;
 }
 
 export enum DraftType {

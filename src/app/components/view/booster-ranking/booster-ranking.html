@@ -1,9 +1,9 @@
 <div class="table-container mat-elevation-z8">
-  <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
+  <table mat-table [dataSource]="store.filteredCards()" class="full-width-table">
     <ng-container matColumnDef="pick">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Pick</th>
       <td mat-cell *matCellDef="let card">
-        @if (card.mtga_id === bestPickId) {
+        @if (card.bestCard) {
           <div class="best-pick-badge" matTooltip="Mejor opción estadística">
             <mat-icon>emoji_events</mat-icon>
           </div>
@@ -24,7 +24,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
       <td mat-cell *matCellDef="let card">
         <div class="name-col">
-          <span class="card-name" [class.highlight-name]="card.mtga_id === bestPickId">
+          <span class="card-name" [class.highlight-name]="card.bestCard">
             {{ card.name }}
           </span>
           <span class="card-id">{{ card.mtga_id }}</span>
@@ -32,78 +32,280 @@
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="color">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Color</th>
-      <td mat-cell *matCellDef="let card">
-        <div class="mana-container">
-          @for (c of card?.color?.split(''); track c) {
-            <span class="mana-symbol" [class]="'mana-' + c.toLowerCase()"></span>
-          }
-        </div>
-      </td>
-    </ng-container>
-
     <ng-container matColumnDef="tier">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Tier</th>
       <td mat-cell *matCellDef="let card">
-        <span class="tier-badge" [attr.data-tier]="card.stats?.tier">{{ card.stats?.tier }}</span>
+        <span class="tier-badge" [attr.data-tier]="card.tier">{{ card.tier }}</span>
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="gihWr">
+    <ng-container matColumnDef="everDrawnWinRate">
       <th
         mat-header-cell
         *matHeaderCellDef
         mat-sort-header
         arrowPosition="before"
-        matTooltip="Game In Hand Win Rate"
+        matTooltip="Ever Drawn Win Rate"
       >
         GIH WR
       </th>
-      <td
-        mat-cell
-        *matCellDef="let card"
-        [style.color]="getWrColor(card.stats?.gihWrValue)"
-        class="font-bold text-right"
-      >
-        {{ card.stats?.gihWr }}
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.everDrawnWinRate | percent: '1.2-2' }}
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="iwd">
+    <ng-container matColumnDef="drawnImprovementWinRate">
       <th
         mat-header-cell
         *matHeaderCellDef
         mat-sort-header
         arrowPosition="before"
-        matTooltip="Improvement When Drawn"
+        matTooltip="Drawn Improvement Win Rate"
       >
-        IWD
+        DI WR
       </th>
       <td mat-cell *matCellDef="let card" class="text-right">
-        {{ card.stats?.iwd }}
+        {{ card.drawnImprovementWinRate | percent: '1.2-2' }}
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="alsa">
+    <ng-container matColumnDef="neverDrawnWinRate">
       <th
         mat-header-cell
         *matHeaderCellDef
         mat-sort-header
         arrowPosition="before"
-        matTooltip="Average Last Seen At"
+        matTooltip="Never Drawn Win Rate"
       >
-        ALSA
+        ND WR
       </th>
-      <td mat-cell *matCellDef="let card" class="text-muted text-right">
-        {{ card.stats?.alsa }}
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.neverDrawnWinRate | percent: '1.2-2' }}
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="games">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header arrowPosition="before"># Games</th>
-      <td mat-cell *matCellDef="let card" class="text-muted text-right text-small">
-        {{ card.avg_seen | number }}
+    <ng-container matColumnDef="rarity">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Rarity"
+      >
+        Rarity
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.rarity }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="seenCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Seen Count"
+      >
+        Seen
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.seenCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="avgSeen">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Average Seen"
+      >
+        Avg Seen
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.avgSeen | number: '1.2-2' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="pickCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Pick Count"
+      >
+        Picks
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.pickCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="avgPick">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Average Pick"
+      >
+        Avg Pick
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.avgPick | number: '1.1-1' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="gameCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Game Count"
+      >
+        Games
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.gameCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="poolCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Pool Count"
+      >
+        Pools
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.poolCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="playRate">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Play Rate"
+      >
+        Play Rate
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.playRate | percent: '1.1-1' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="winRate">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Win Rate"
+      >
+        Win Rate
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.winRate | percent: '1.1-1' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="openingHandGameCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Opening Hand Game Count"
+      >
+        OH Games
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.openingHandGameCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="openingHandWinRate">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Opening Hand Win Rate"
+      >
+        OH WR
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.openingHandWinRate | percent: '1.1-1' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="drawnGameCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Drawn Game Count"
+      >
+        Drawn Games
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.drawnGameCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="drawnWinRate">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Drawn Win Rate"
+      >
+        Drawn WR
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.drawnWinRate | percent: '1.1-1' }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="everDrawnGameCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Ever Drawn Game Count"
+      >
+        ED Games
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.everDrawnGameCount }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="neverDrawnGameCount">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        arrowPosition="before"
+        matTooltip="Never Drawn Game Count"
+      >
+        ND Games
+      </th>
+      <td mat-cell *matCellDef="let card" class="text-right">
+        {{ card.neverDrawnGameCount }}
       </td>
     </ng-container>
 
@@ -112,7 +314,7 @@
       mat-row
       *matRowDef="let row; columns: displayedColumns"
       class="element-row"
-      [class.recommended-row]="row.mtga_id === bestPickId"
+      [class.recommended-row]="row.bestCard"
     ></tr>
   </table>
 </div>

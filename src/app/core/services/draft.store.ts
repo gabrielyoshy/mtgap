@@ -5,14 +5,7 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import { setAllEntities, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap } from 'rxjs';
-import {
-  ColorFilter,
-  DraftCard,
-  DraftType,
-  RawStats,
-  UserGroup,
-  ViewMode,
-} from '../types/draft-store';
+import { ColorFilter, DraftCard, DraftType, RawStats, UserGroup, ViewMode } from '@types';
 
 function calculateTier(wr: number): string {
   if (!wr) return '-';
@@ -43,38 +36,51 @@ export const DraftStore = signalStore(
       const ids = store.filterIds();
       const entities = store.entityMap();
 
+      const currentCards = ids
+        .map((id) => entities[id])
+        .filter((raw): raw is RawStats => raw !== undefined);
+
+      const maxWinRate =
+        currentCards.length > 0
+          ? Math.max(...currentCards.map((c) => c.ever_drawn_win_rate || 0))
+          : 0;
+
       return ids.map((id) => {
         const raw = entities[id];
-        if (raw) {
-          return {
-            mtga_id: raw.mtga_id,
-            name: raw.name,
-            imageUrl:
-              raw.url || `https://static.wikia.nocookie.net/mtgalaxy/images/${raw.mtga_id}.jpg`,
 
-            color: raw.color || 'C',
-            avg_seen: raw.avg_seen || 0,
-
-            stats: {
-              gihWr: raw.ever_drawn_win_rate
-                ? (raw.ever_drawn_win_rate * 100).toFixed(1) + '%'
-                : '-',
-              gihWrValue: raw.ever_drawn_win_rate ? raw.ever_drawn_win_rate * 100 : 0,
-              alsa: raw.avg_seen ? raw.avg_seen.toFixed(2) : '-',
-              tier: calculateTier(raw.ever_drawn_win_rate),
-              iwd: raw.drawn_improvement_win_rate
-                ? (raw.drawn_improvement_win_rate * 100).toFixed(1) + 'pp'
-                : '-',
-            },
-          } as DraftCard;
-        } else {
-          return {
-            mtga_id: id,
-            name: 'Desconocida / Cargando...',
-
-            stats: undefined,
-          } as DraftCard;
+        if (!raw) {
+          return null;
         }
+
+        const currentWinRate = raw.ever_drawn_win_rate || 0;
+        const isBestCard = currentWinRate === maxWinRate && maxWinRate > 0;
+
+        return {
+          mtgaId: raw.mtga_id,
+          name: raw.name,
+          imageUrl: raw.url,
+          color: raw.color,
+          rarity: raw.rarity,
+          seenCount: raw.seen_count,
+          avgSeen: raw.avg_seen,
+          pickCount: raw.pick_count,
+          avgPick: raw.avg_pick,
+          gameCount: raw.game_count,
+          poolCount: raw.pool_count,
+          playRate: raw.play_rate,
+          winRate: raw.win_rate,
+          openingHandGameCount: raw.opening_hand_game_count,
+          openingHandWinRate: raw.opening_hand_win_rate,
+          drawnGameCount: raw.drawn_game_count,
+          drawnWinRate: raw.drawn_win_rate,
+          everDrawnGameCount: raw.ever_drawn_game_count,
+          everDrawnWinRate: raw.ever_drawn_win_rate,
+          neverDrawnGameCount: raw.never_drawn_game_count,
+          neverDrawnWinRate: raw.never_drawn_win_rate,
+          drawnImprovementWinRate: raw.drawn_improvement_win_rate,
+          tier: calculateTier(raw.win_rate),
+          bestCard: isBestCard,
+        } as DraftCard;
       });
     }),
   })),
