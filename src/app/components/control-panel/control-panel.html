@@ -1,4 +1,4 @@
-<div class="control-panel">
+<div class="control-panel" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   <h3>MTGA Companion</h3>
 
   <mat-form-field>
@@ -12,4 +12,5 @@
   </mat-form-field>
 
   <button (click)="triggerSimulation()" class="sim-btn">🧪 Simular Pack</button>
+  <button (click)="trigger2BoosterSimulation()" class="sim-btn">🧪 Simular 2 Boosters</button>
 </div>

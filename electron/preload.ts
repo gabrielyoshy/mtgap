@@ -20,4 +20,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   simulateDraft: () => ipcRenderer.send('dev-simulate-draft'),
+  simulate2Booster: () => ipcRenderer.send('dev-simulate-2-booster'),
 });

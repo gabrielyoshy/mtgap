@@ -91,9 +91,10 @@ export class LogWatcher extends EventEmitter {
     const lines = chunk.split('\n');
 
     lines.forEach((line) => {
-      if (line.includes('Draft.Notify')) {
+      // MODIFICACIÓN: Ahora buscamos 'Draft.Notify' (Humanos) O 'BotDraft' (Bots)
+      // También verificamos que la línea tenga un JSON ('{') para evitar cabeceras vacías.
+      if ((line.includes('Draft.Notify') || line.includes('BotDraft')) && line.includes('{')) {
         console.log('🎯 ¡LÍNEA DE DRAFT ENCONTRADA!');
-        console.log('Texto:', line);
         this.processDraftLine(line);
       }
     });
@@ -103,15 +104,34 @@ export class LogWatcher extends EventEmitter {
     try {
       const jsonStartIndex = line.indexOf('{');
       if (jsonStartIndex === -1) {
-        console.warn('⚠️ Se encontró Draft.Notify pero no el JSON "{".');
         return;
       }
 
       const jsonString = line.substring(jsonStartIndex);
-      const data = JSON.parse(jsonString);
+      let data = JSON.parse(jsonString);
 
-      console.log('📦 JSON Parseado correctamente:', data);
-      this.emit('draft-pack', data);
+      // MEJORA: Desenpaquetar el "Payload" si existe.
+      // MTGA a veces devuelve: { CurrentModule: "BotDraft", Payload: "{\"DraftPack\":...}" }
+      if (data.Payload && typeof data.Payload === 'string') {
+        try {
+          console.log('🔓 Desempaquetando Payload interno...');
+          const internalData = JSON.parse(data.Payload);
+          // Fusionamos los datos internos con los externos por si acaso
+          data = { ...data, ...internalData };
+        } catch (innerError) {
+          console.warn('⚠️ Error parseando el Payload interno, usando data original.', innerError);
+        }
+      }
+
+      console.log('📦 Evento Draft procesado:', data);
+
+      // Opcional: Validar que realmente tenemos un DraftPack antes de emitir
+      if (data.DraftPack) {
+        this.emit('draft-pack', data);
+      } else {
+        // A veces envían eventos de estado sin cartas, puedes decidir si emitirlos o no
+        console.log('ℹ️ Evento de draft sin cartas (probablemente cambio de estado).');
+      }
     } catch (e) {
       console.error('❌ Error parseando JSON:', e);
     }

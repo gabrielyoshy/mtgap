@@ -64,11 +64,45 @@ ipcMain.on('dev-simulate-draft', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender);
 
   // Respondemos con datos falsos (IDs reales de MTG Arena - Set Foundations)
-  // 87834 = Llanowar Elves
-  // 87985 = Serra Angel
-  // 88022 = Negate
   win?.webContents.send('draft-update', {
-    SelfPack: ['87834', '87985', '88022'],
+    DraftPack: [
+      '95938',
+      '96143',
+      '96035',
+      '95863',
+      '95934',
+      '95952',
+      '96077',
+      '96130',
+      '95875',
+      '96092',
+      '96046',
+      '95971',
+      '95910',
+      '96179',
+    ],
+  });
+});
+
+ipcMain.on('dev-simulate-2-booster', (event) => {
+  console.log('🧪 Recibido comando de 2 booster');
+
+  const win = BrowserWindow.fromWebContents(event.sender);
+
+  win?.webContents.send('draft-update', {
+    DraftPack: [
+      '95951',
+      '96155',
+      '96035',
+      '95841',
+      '95974',
+      '95930',
+      '96031',
+      '96132',
+      '95833',
+      '96034',
+      '96035',
+    ],
   });
 });
 

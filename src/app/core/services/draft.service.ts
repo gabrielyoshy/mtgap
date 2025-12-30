@@ -1,13 +1,13 @@
-import { Injectable, NgZone, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { CardStore } from './card.store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DraftService {
-  // Usamos un Signal para almacenar los IDs de las cartas del pack actual
-  currentPack = signal<number[]>([]);
+  cardStore = inject(CardStore);
 
-  constructor(private ngZone: NgZone) {
+  constructor() {
     this.initElectronListener();
   }
 
@@ -20,19 +20,17 @@ export class DraftService {
         // Depende de la versión del log, pero usualmente es un array de strings (IDs)
         let cardIds: string[] = [];
 
-        if (data.SelfPack) {
-          cardIds = data.SelfPack;
-        } else if (data.PackCards) {
-          cardIds = data.PackCards.split(','); // A veces viene como string separado por comas
+        if (data.DraftPack) {
+          cardIds = data.DraftPack;
+        } else if (data.DraftPack) {
+          cardIds = data.DraftPack.split(','); // A veces viene como string separado por comas
         }
 
         // Convertimos a números para procesar mejor
         const numericIds = cardIds.map((id) => Number(id)).filter((id) => !isNaN(id));
 
         // Actualizamos el Signal dentro de la zona de Angular para refrescar la vista
-        this.ngZone.run(() => {
-          this.currentPack.set(numericIds);
-        });
+        this.cardStore.updateFilterIds(numericIds);
       });
 
       // Iniciamos el watcher explícitamente si no arrancó solo

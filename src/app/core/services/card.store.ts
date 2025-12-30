@@ -100,7 +100,7 @@ export const CardStore = signalStore(
           return {
             mtga_id: id,
             name: 'Desconocida / Cargando...',
-            imageUrl: `https://static.wikia.nocookie.net/mtgalaxy/images/${id}.jpg`,
+
             stats: undefined,
           } as DraftCard;
         }

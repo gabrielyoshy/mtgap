@@ -18,5 +18,6 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
         }
     },
     simulateDraft: () => electron_1.ipcRenderer.send('dev-simulate-draft'),
+    simulate2Booster: () => electron_1.ipcRenderer.send('dev-simulate-2-booster'),
 });
 //# sourceMappingURL=preload.js.map

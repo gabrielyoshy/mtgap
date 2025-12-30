@@ -28,10 +28,6 @@ export class ControlPanel implements AfterViewInit {
   collectionFormControl = new FormControl('TLA', Validators.required);
 
   constructor() {
-    effect(() => {
-      console.log('Pack actual:', this.draftService.currentPack());
-    });
-
     this.collectionFormControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
       console.log('🛠️ [ControlPanel] Set cambiado a:', value);
       if (value) this.cardStore.setExpansion(value);
@@ -59,13 +55,27 @@ export class ControlPanel implements AfterViewInit {
   }
 
   triggerSimulation() {
-    // console.log('🔘 Botón presionado: Pidiendo simulación a Electron...');
-    // if (window.electronAPI) {
-    //   window.electronAPI.simulateDraft();
-    // } else {
-    //   console.error('❌ Electron API no encontrada (¿Estás en el navegador?)');
-    // }
+    console.log('🔘 Botón presionado: Pidiendo simulación a Electron...');
+    if (window.electronAPI) {
+      window.electronAPI.simulateDraft();
+    } else {
+      console.error('❌ Electron API no encontrada (¿Estás en el navegador?)');
+      this.cardStore.updateFilterIds([
+        95938, 96143, 96035, 95863, 95934, 95952, 96077, 96130, 95875, 96092, 96046, 95971, 95910,
+        96179,
+      ]);
+    }
+  }
 
-    this.cardStore.updateFilterIds([97274, 97275, 97276]);
+  trigger2BoosterSimulation() {
+    console.log('🔘 Botón presionado: Pidiendo simulación de 2 booster a Electron...');
+    if (window.electronAPI) {
+      window.electronAPI.simulate2Booster();
+    } else {
+      console.error('❌ Electron API no encontrada (¿Estás en el navegador?)');
+      this.cardStore.updateFilterIds([
+        95951, 96155, 96035, 95841, 95974, 95930, 96031, 96132, 95833, 96034, 96035,
+      ]);
+    }
   }
 }

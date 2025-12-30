@@ -2,21 +2,13 @@ import { Component, ViewChild, inject, effect, AfterViewInit } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CardStore, DraftCard } from '../../core/services/card.store';
 
 @Component({
   selector: 'app-booster-ranking',
-  imports: [
-    CommonModule,
-    MatTableModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatIconModule,
-    MatTooltipModule,
-  ],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatIconModule, MatTooltipModule],
   templateUrl: './booster-ranking.html',
   styleUrl: './booster-ranking.css',
 })
@@ -40,7 +32,6 @@ export class BoosterRanking implements AfterViewInit {
   bestPickId: number | null = null; // Para marcar la mejor carta
 
   @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor() {
     effect(() => {
@@ -64,7 +55,6 @@ export class BoosterRanking implements AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
 
     // Configuración custom para ordenar números correctamente
     this.dataSource.sortingDataAccessor = (item, property) => {
