@@ -1,214 +1,238 @@
 :host {
-  --bg-dark: #1e1e1e;
-  --card-bg: #2b2b2b;
-  --text-main: #e0e0e0;
-  --text-dim: #9e9e9e;
+  /* Colores de Tier (Estilo RPG) */
+  --color-s: #a335ee; /* Epic Purple */
+  --color-a: #0070dd; /* Rare Blue */
+  --color-b: #1eff00; /* Uncommon Green */
+  --color-c: #ffffff; /* Common White */
+  --color-d: #9d9d9d; /* Poor Grey */
+  --color-f: #ff3e3e; /* Trash Red */
 
-  --color-godly: #d4af37;
-  --color-great: #4caf50;
-  --color-good: #8bc34a;
-  --color-avg: #ffc107;
-  --color-bad: #f44336;
+  --bg-card: #1b1b1b;
+  --bg-darker: #121212;
+  --text-primary: #eee;
+  --text-secondary: #aaa;
 
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
-  padding: 20px;
+  width: 100%;
 }
 
-/* --- TARJETA BASE --- */
-.card-item {
-  background-color: var(--card-bg);
-  border-radius: 12px;
+/* --- TARJETA --- */
+.card-wrapper {
+  background: var(--bg-card);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border: 1px solid #333;
   transition:
     transform 0.2s,
     box-shadow 0.2s;
   display: flex;
   flex-direction: column;
-  border: 1px solid #3a3a3a;
-  position: relative;
 }
 
-.card-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+.card-wrapper:hover {
+  transform: translateY(-4px);
+  z-index: 10;
+}
+
+/* --- LÓGICA DE TIERS (Bordes y Sombras) --- */
+/* Por defecto usamos color gris */
+.card-wrapper {
+  --tier-color: var(--color-d);
+}
+
+.card-wrapper.tier-s {
+  --tier-color: var(--color-s);
+  border-color: var(--tier-color);
+}
+.card-wrapper.tier-a {
+  --tier-color: var(--color-a);
+  border-color: var(--tier-color);
+}
+.card-wrapper.tier-b {
+  --tier-color: var(--color-b);
+  border-color: var(--tier-color);
+}
+.card-wrapper.tier-c {
+  --tier-color: var(--color-c);
   border-color: #555;
 }
+.card-wrapper.tier-d {
+  --tier-color: var(--color-d);
+}
 
-/* Bordes de Rareza */
-.card-item.mythic {
-  border-top: 3px solid #ff9800;
+/* Efecto de brillo en hover basado en el color del Tier */
+.card-wrapper:hover {
+  box-shadow: 0 0 15px var(--tier-color);
 }
-.card-item.rare {
-  border-top: 3px solid #d4af37;
+
+/* --- ESTILO "BEST CARD" --- */
+.card-wrapper.is-best-card {
+  border: 2px solid #ffd700; /* Oro */
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  animation: pulse-gold 2s infinite;
 }
-.card-item.uncommon {
-  border-top: 3px solid #9e9e9e;
+
+@keyframes pulse-gold {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+  }
 }
-.card-item.common {
-  border-top: 3px solid #212121;
+
+.best-card-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(45deg, #ffd700, #ffaa00);
+  color: #000;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 5;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
 
 /* --- IMAGEN --- */
-.card-image-wrapper {
+.image-section {
   position: relative;
-  width: 100%;
-  height: 200px; /* Altura fija para el arte */
-  background: #111;
-  overflow: hidden;
+  height: 160px;
+  background: #000;
 }
 
-.card-image-wrapper img {
+.image-section img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Recorta la imagen para llenar el hueco */
-  object-position: top center; /* Enfoca la parte superior (arte) */
-  transition: transform 0.3s;
+  object-fit: cover;
+  object-position: top; /* Enfoca el arte */
+  opacity: 0.9;
 }
 
-/* Zoom effect al pasar el mouse por la carta */
-.card-item:hover .card-image-wrapper img {
-  transform: scale(1.1);
-}
-
-.rarity-badge {
+.tier-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  color: white;
-  backdrop-filter: blur(2px);
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--tier-color);
+  color: var(--tier-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* --- CONTENIDO --- */
-.card-content {
-  padding: 12px;
+/* --- INFO --- */
+.info-section {
+  padding: 10px;
+  background: var(--bg-card);
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 6px;
 }
 
-.card-name {
+.name {
   margin: 0;
-  font-size: 1rem;
-  color: var(--text-main);
-  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 75%;
+  max-width: 85%;
 }
 
-.mana-cost {
-  font-size: 0.8rem;
-  color: var(--text-dim);
+.rarity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.rarity-dot.mythic {
+  background: #ff7b00;
+  box-shadow: 0 0 5px #ff7b00;
+}
+.rarity-dot.rare {
+  background: #ffd700;
+}
+.rarity-dot.uncommon {
+  background: silver;
 }
 
-/* --- GRID DE ESTADÍSTICAS --- */
+.rarity-dot.common {
+  background: #000;
+  border: 1px solid #555;
+}
+
+/* --- GRID DE STATS --- */
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: auto; /* Empuja los stats hacia abajo */
+  gap: 6px;
 }
 
-.stat-box {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 6px;
-  border-radius: 6px;
+.stat-row {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  text-align: center;
+  font-size: 0.85rem;
 }
 
-.stat-box .label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--text-dim);
+.label {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Stat Principal (GIH WR) destacado */
+.stat-row.main-stat {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 6px;
+  border-radius: 4px;
   margin-bottom: 2px;
 }
-
-.stat-box .value {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-main);
+.stat-row.main-stat .value {
+  font-size: 1rem;
+  color: var(--tier-color); /* El texto toma el color del Tier */
 }
 
-.stat-box .value.dim {
-  color: #666;
-  font-size: 0.8rem;
+/* IWD Colores */
+.value.positive {
+  color: #4caf50;
+}
+.value.negative {
+  color: #ff5252;
 }
 
-/* --- STAT PRINCIPAL (GIH WR) --- */
-.stat-box.main-stat {
-  grid-column: span 2; /* Ocupa todo el ancho */
-  background: rgba(255, 255, 255, 0.05);
-  flex-direction: row;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border: 1px solid transparent;
-}
-
-.stat-box.main-stat .label {
-  font-size: 0.85rem;
-  margin: 0;
-}
-
-.stat-box.main-stat .value {
-  font-size: 1.2rem;
-}
-
-/* Colores dinámicos para GIH WR */
-.stat-box.main-stat.stat-godly {
-  border-color: var(--color-godly);
-  color: var(--color-godly);
-}
-.stat-box.main-stat.stat-godly .value {
-  color: var(--color-godly);
-}
-
-.stat-box.main-stat.stat-great {
-  border-color: var(--color-great);
-  color: var(--color-great);
-}
-.stat-box.main-stat.stat-great .value {
-  color: var(--color-great);
-}
-
-.stat-box.main-stat.stat-good {
-  border-color: var(--color-good);
-  color: var(--color-good);
-}
-.stat-box.main-stat.stat-good .value {
-  color: var(--color-good);
-}
-
-.stat-box.main-stat.stat-average {
-  border-color: var(--color-avg);
-  color: var(--color-avg);
-}
-.stat-box.main-stat.stat-average .value {
-  color: var(--color-avg);
-}
-
-.stat-box.main-stat.stat-bad {
-  border-color: var(--color-bad);
-  color: var(--color-bad);
-}
-.stat-box.main-stat.stat-bad .value {
-  color: var(--color-bad);
+/* Dimmed Stats */
+.stat-row.dim .label,
+.stat-row.dim .value {
+  color: #555;
+  font-size: 0.75rem;
 }

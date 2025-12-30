@@ -1,44 +1,54 @@
-@for (card of cards(); track card.mtga_id) {
-  <div class="card-item" [class]="'mythic'">
-    <div class="card-image-wrapper">
-      <img
-        [src]="card.imageUrl || getScryfallImage(card.name)"
-        loading="lazy"
-        alt="{{ card.name }}"
-      />
+@for (card of cards(); track card) {
+  @if (card) {
+    <div
+      class="card-wrapper"
+      [class]="getTierClass(card.tier)"
+      [class.is-best-card]="card.bestCard"
+    >
+      <div class="image-section">
+        <img [src]="card.imageUrl" [alt]="card.name" loading="lazy" />
 
-      <div class="rarity-badge">
-        <span class="symbol">{{ 'a' }}</span>
+        <div class="tier-badge">
+          {{ card.tier }}
+        </div>
+
+        @if (card.bestCard) {
+          <div class="best-card-label"><span class="crown">👑</span> BEST PICK</div>
+        }
+      </div>
+
+      <div class="info-section">
+        <div class="card-header">
+          <h3 class="name">{{ card.name }}</h3>
+          <span class="rarity-dot" [title]="card.rarity" [class]="card.rarity"></span>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-row main-stat">
+            <span class="label">GIH WR</span>
+            <span class="value">{{ card.everDrawnWinRate | percent: '1.1-1' }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="label">IWD</span>
+            <span
+              class="value"
+              [class.positive]="card.drawnImprovementWinRate > 0"
+              [class.negative]="card.drawnImprovementWinRate < 0"
+            >
+              {{ card.drawnImprovementWinRate > 0 ? '+' : ''
+              }}{{ card.drawnImprovementWinRate | percent: '1.1-1' }}
+            </span>
+          </div>
+
+          <div class="stat-row dim">
+            <span class="label">Never Drawn</span>
+            <span class="value">{{ card.neverDrawnWinRate | percent: '1.1-1' }}</span>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="card-content">
-      <div class="card-header">
-        <h3 class="card-name">{{ card.name }}</h3>
-        <span class="mana-cost">{{ 2 }}</span>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-box main-stat" [class]="'stat-godly'">
-          <span class="label">GIH WR</span>
-          <span class="value">{{ 'aa' }}</span>
-        </div>
-
-        <div class="stat-box">
-          <span class="label">ALSA</span>
-          <span class="value">{{ 23 }}</span>
-        </div>
-
-        <div class="stat-box">
-          <span class="label">IWD</span>
-          <span class="value" [style.color]="true ? '#4caf50' : '#ff5252'"> {{ 23 }}pp </span>
-        </div>
-
-        <div class="stat-box">
-          <span class="label"># Games</span>
-          <span class="value dim">{{ card.stats?.gihWrValue }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  } @else {
+    <div class="empty-state">No hay cartas para mostrar.</div>
+  }
 }

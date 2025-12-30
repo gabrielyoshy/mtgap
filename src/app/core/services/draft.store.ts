@@ -10,9 +10,9 @@ import { ColorFilter, DraftCard, DraftType, RawStats, UserGroup, ViewMode } from
 function calculateTier(wr: number): string {
   if (!wr) return '-';
   if (wr > 0.6) return 'S';
-  if (wr > 0.57) return 'A';
-  if (wr > 0.55) return 'B';
-  if (wr > 0.52) return 'C';
+  if (wr > 0.58) return 'A';
+  if (wr > 0.56) return 'B';
+  if (wr > 0.54) return 'C';
   return 'D';
 }
 
@@ -78,7 +78,7 @@ export const DraftStore = signalStore(
           neverDrawnGameCount: raw.never_drawn_game_count,
           neverDrawnWinRate: raw.never_drawn_win_rate,
           drawnImprovementWinRate: raw.drawn_improvement_win_rate,
-          tier: calculateTier(raw.win_rate),
+          tier: calculateTier(raw.ever_drawn_win_rate),
           bestCard: isBestCard,
         } as DraftCard;
       });
