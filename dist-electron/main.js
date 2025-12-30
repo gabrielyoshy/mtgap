@@ -10,14 +10,15 @@ function createWindow() {
     win = new electron_1.BrowserWindow({
         width: width,
         height: height,
-        transparent: true,
-        frame: false,
-        alwaysOnTop: true,
-        hasShadow: false, // Importante para transparencias limpias en Mac/Windows
+        transparent: false, // Fondo sólido (ya no es transparente)
+        frame: true, // Muestra bordes y barra de título (Cerrar, Minimizar)
+        alwaysOnTop: false, // Ya no flota encima de todo obligatoriamente
+        hasShadow: true, // Sombra nativa de ventana estándar
+        backgroundColor: '#2e2c29', // (Opcional) Color de fondo inicial para evitar destellos blancos al cargar
         webPreferences: {
-            nodeIntegration: false, // Seguridad: No permitir require() en el HTML
-            contextIsolation: true, // Seguridad: Aislar contextos
-            preload: path.join(__dirname, 'preload.js'), // El puente
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
     // LÓGICA DE CONEXIÓN:
@@ -44,12 +45,6 @@ function createWindow() {
     // Arrancarlo
     watcher.start();
 }
-electron_1.ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
-    const win = electron_1.BrowserWindow.fromWebContents(event.sender);
-    // ignore = true  -> Clics traspasan (van al juego)
-    // ignore = false -> Clics se quedan en tu app (menú)
-    win?.setIgnoreMouseEvents(ignore, options);
-});
 // ESCUCHA: Angular nos pide simular un draft
 electron_1.ipcMain.on('dev-simulate-draft', (event) => {
     console.log('🧪 Recibido comando de simulación desde Angular');

@@ -11,14 +11,14 @@ function createWindow() {
   win = new BrowserWindow({
     width: width,
     height: height,
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true,
-    hasShadow: false, // Importante para transparencias limpias en Mac/Windows
+    transparent: false, // Fondo sólido (ya no es transparente)
+    frame: true, // Muestra bordes y barra de título (Cerrar, Minimizar)
+    alwaysOnTop: false, // Ya no flota encima de todo obligatoriamente
+    hasShadow: true, // Sombra nativa de ventana estándar
     webPreferences: {
-      nodeIntegration: false, // Seguridad: No permitir require() en el HTML
-      contextIsolation: true, // Seguridad: Aislar contextos
-      preload: path.join(__dirname, 'preload.js'), // El puente
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -49,13 +49,6 @@ function createWindow() {
   // Arrancarlo
   watcher.start();
 }
-
-ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
-  const win = BrowserWindow.fromWebContents(event.sender);
-  // ignore = true  -> Clics traspasan (van al juego)
-  // ignore = false -> Clics se quedan en tu app (menú)
-  win?.setIgnoreMouseEvents(ignore, options);
-});
 
 // ESCUCHA: Angular nos pide simular un draft
 ipcMain.on('dev-simulate-draft', (event) => {

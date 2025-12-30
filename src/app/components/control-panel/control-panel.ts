@@ -1,19 +1,16 @@
-import {
-  AfterViewInit,
-  Component,
-  DestroyRef,
-  effect,
-  inject,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DraftService } from '../../core/services/draft.service';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardStore } from '../../core/services/card.store';
+import { CardStore, DraftType, UserGroup, ColorFilter } from '../../core/services/card.store';
 
 @Component({
   selector: 'app-control-panel',
@@ -21,37 +18,54 @@ import { CardStore } from '../../core/services/card.store';
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.css',
 })
-export class ControlPanel implements AfterViewInit {
+export class ControlPanel {
   draftService = inject(DraftService);
   cardStore = inject(CardStore);
 
-  collectionFormControl = new FormControl('TLA', Validators.required);
+  formGroup = new FormGroup({
+    currentSet: new FormControl('TLA', Validators.required),
+    draftType: new FormControl(DraftType.Premier, Validators.required),
+    userGroup: new FormControl(UserGroup.All, Validators.required),
+    colors: new FormControl(ColorFilter.All, Validators.required),
+  });
+
+  // Exponer los enums para el template
+  DraftType = DraftType;
+  UserGroup = UserGroup;
+  ColorFilter = ColorFilter;
 
   constructor() {
-    this.collectionFormControl.valueChanges.pipe(takeUntilDestroyed()).subscribe((value) => {
-      console.log('🛠️ [ControlPanel] Set cambiado a:', value);
-      if (value) this.cardStore.setExpansion(value);
-    });
+    this.initSetSubscription();
   }
 
-  ngAfterViewInit() {
-    // IMPORTANTE: Al iniciar, le decimos a Electron:
-    // "Todo lo que sea transparente, ignóralo"
-    if (window.electronAPI) {
-      window.electronAPI.setIgnoreMouseEvents(true);
-    }
-  }
+  initSetSubscription() {
+    this.formGroup
+      .get('currentSet')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        if (value) this.cardStore.setCurrentSet(value);
+      });
 
-  // Cuando el mouse entra al menú (Lo hacemos clickeable)
-  onMouseEnter() {
-    console.log('Mouse sobre el menú: Activando clics');
-    window.electronAPI?.setIgnoreMouseEvents(false);
-  }
+    this.formGroup
+      .get('draftType')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        if (value) this.cardStore.setDraftType(value);
+      });
 
-  // Cuando el mouse sale del menú (Lo hacemos fantasma otra vez)
-  onMouseLeave() {
-    console.log('Mouse fuera del menú: Pasando clics al juego');
-    window.electronAPI?.setIgnoreMouseEvents(true);
+    this.formGroup
+      .get('userGroup')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        if (value) this.cardStore.setUserGroup(value);
+      });
+
+    this.formGroup
+      .get('colors')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe((value) => {
+        if (value) this.cardStore.setColors(value);
+      });
   }
 
   triggerSimulation() {

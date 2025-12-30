@@ -9,16 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Angular pide iniciar la lectura de logs
   startLogWatcher: () => ipcRenderer.send('start-watching-logs'),
 
-  setIgnoreMouseEvents: (ignore: boolean) => {
-    if (ignore) {
-      // forward: true es CRÍTICO: permite que el mouse "pase" pero que JavaScript
-      // aún detecte el movimiento (para saber cuándo volvemos a entrar al menú)
-      ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
-    } else {
-      ipcRenderer.send('set-ignore-mouse-events', false);
-    }
-  },
-
   simulateDraft: () => ipcRenderer.send('dev-simulate-draft'),
   simulate2Booster: () => ipcRenderer.send('dev-simulate-2-booster'),
 });

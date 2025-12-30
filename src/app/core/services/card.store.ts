@@ -2,14 +2,11 @@ import { inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tapResponse } from '@ngrx/operators';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-// 1. Importamos withEntities y setAllEntities (ya no necesitamos entityConfig)
 import { setAllEntities, withEntities } from '@ngrx/signals/entities';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap } from 'rxjs';
-
-// --- Interfaces ---
 export interface RawStats {
-  mtga_id: number; // Asegúrate que esto coincida con la API
+  mtga_id: number;
   name: string;
   url: string;
   ever_drawn_win_rate: number;
@@ -24,19 +21,64 @@ export interface DraftCard {
   mtga_id: number;
   name: string;
   imageUrl: string;
-  // Nuevos campos
   color: string;
   avg_seen: number;
   stats?: {
     gihWr: string;
-    gihWrValue: number; // Guardamos el número puro para ordenar fácil
+    gihWrValue: number;
     alsa: string;
     tier: string;
     iwd: string;
   };
 }
 
-// --- Helper ---
+export enum DraftType {
+  Premier = 'PremierDraft',
+  Traditional = 'TradDraft',
+  QuickDraft = 'QuickDraft',
+  Sealed = 'Sealed',
+  TradSealed = 'TradSealed',
+  ArenaDirectSealed = 'ArenaDirect_Sealed',
+  EmblemQuickDraft = 'Emblem_QuickDraft',
+  MidWeekQuickDraft = 'MidWeekQuickDraft',
+  QualifierPlayInSealed = 'QualifierPlayIn_Sealed',
+}
+
+export enum UserGroup {
+  All = 'all',
+  Top = 'top',
+  Middle = 'middle',
+  Bottom = 'bottom',
+}
+
+export enum ColorFilter {
+  All = 'all',
+  W = 'W',
+  U = 'U',
+  B = 'B',
+  R = 'R',
+  G = 'G',
+  WU = 'WU',
+  WB = 'WB',
+  WR = 'WR',
+  WG = 'WG',
+  UB = 'UB',
+  UR = 'UR',
+  UG = 'UG',
+  BR = 'BR',
+  BG = 'BG',
+  RG = 'RG',
+  WGU = 'WGU',
+  WUB = 'WUB',
+  WBR = 'WBR',
+  WRG = 'WRG',
+  WBG = 'WBG',
+  UBR = 'UBR',
+  URG = 'URG',
+  BRG = 'BRG',
+  WUBRG = 'WUBRG',
+}
+
 function calculateTier(wr: number): string {
   if (!wr) return '-';
   if (wr > 0.6) return 'S';
@@ -53,22 +95,17 @@ export const CardStore = signalStore(
     currentSet: 'TLA',
     filterIds: [] as number[],
     status: 'idle' as 'idle' | 'loading' | 'loaded' | 'error',
+    colors: ColorFilter.All,
+    userGroup: UserGroup.All,
+    draftType: DraftType.Premier,
   }),
 
-  // 2. CONFIGURACIÓN DIRECTA (Sin nombre de colección)
-  // Al no usar 'collection', las entidades se guardan en 'entityMap' y 'ids' directamente.
-  // Esto es mucho menos propenso a errores.
   withEntities<RawStats>(),
 
   withComputed((store) => ({
     filteredCards: computed(() => {
       const ids = store.filterIds();
-
-      // 3. Accedemos a la colección por defecto (entityMap)
       const entities = store.entityMap();
-
-      // Debug: Veremos si ahora sí es un objeto { "123": {...} }
-      // console.log('🃏 Mapa de Entidades:', entities);
 
       return ids.map((id) => {
         const raw = entities[id];
@@ -79,15 +116,13 @@ export const CardStore = signalStore(
             imageUrl:
               raw.url || `https://static.wikia.nocookie.net/mtgalaxy/images/${raw.mtga_id}.jpg`,
 
-            // Mapeo de Color y Cantidad de Juegos
-            color: raw.color || 'C', // 'C' = Colorless/Artifact si viene vacío
+            color: raw.color || 'C',
             avg_seen: raw.avg_seen || 0,
 
             stats: {
               gihWr: raw.ever_drawn_win_rate
                 ? (raw.ever_drawn_win_rate * 100).toFixed(1) + '%'
                 : '-',
-              // Guardamos el valor numérico para lógica de recomendación
               gihWrValue: raw.ever_drawn_win_rate ? raw.ever_drawn_win_rate * 100 : 0,
               alsa: raw.avg_seen ? raw.avg_seen.toFixed(2) : '-',
               tier: calculateTier(raw.ever_drawn_win_rate),
@@ -113,8 +148,23 @@ export const CardStore = signalStore(
       patchState(store, { filterIds: ids });
     },
 
-    setExpansion(expansion: string) {
-      patchState(store, { currentSet: expansion, status: 'idle' });
+    setCurrentSet(currentSet: string) {
+      patchState(store, { currentSet, status: 'idle' });
+      this.loadStats();
+    },
+
+    setDraftType(draftType: DraftType) {
+      patchState(store, { draftType, status: 'idle' });
+      this.loadStats();
+    },
+
+    setUserGroup(userGroup: UserGroup) {
+      patchState(store, { userGroup, status: 'idle' });
+      this.loadStats();
+    },
+
+    setColors(colors: ColorFilter) {
+      patchState(store, { colors, status: 'idle' });
       this.loadStats();
     },
 
@@ -123,31 +173,20 @@ export const CardStore = signalStore(
         tap(() => patchState(store, { status: 'loading' })),
         switchMap(() => {
           const expansion = store.currentSet();
-          const url = `https://www.17lands.com/card_ratings/data?expansion=${expansion}&format=PremierDraft`;
+          const draftType = store.draftType();
+          const userGroup =
+            store.userGroup() === UserGroup.All ? '' : `&user_group=${store.userGroup()}`;
+          const colors = store.colors() === ColorFilter.All ? '' : `&colors=${store.colors()}`;
+
+          const url = `https://www.17lands.com/card_ratings/data?expansion=${expansion}&event_type=${draftType}${userGroup}${colors}`;
 
           return http.get<RawStats[]>(url).pipe(
             tapResponse({
               next: (data) => {
-                // 4. VALIDACIÓN DE DATOS (CRÍTICO)
-                // Si la API trae 'arena_id' en vez de 'mtga_id', aquí nos daremos cuenta.
-                if (data.length > 0) {
-                  const first = data[0];
-                  console.log('🔍 Inspección de datos:', first);
-
-                  if (first.mtga_id === undefined) {
-                    console.error(
-                      '⚠️ ALERTA: mtga_id es undefined. Claves disponibles:',
-                      Object.keys(first),
-                    );
-                  }
-                }
-
-                // 5. GUARDADO EXPLÍCITO
-                // Pasamos el selectId AQUÍ MISMO para forzar la indexación.
                 patchState(
                   store,
                   setAllEntities(data, {
-                    selectId: (card) => card.mtga_id, // <--- Forzamos la ID aquí
+                    selectId: (card) => card.mtga_id,
                   }),
                   { status: 'loaded' },
                 );
