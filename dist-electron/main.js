@@ -8,20 +8,18 @@ let watcher = null;
 function createWindow() {
     const { width, height } = electron_1.screen.getPrimaryDisplay().workAreaSize;
     win = new electron_1.BrowserWindow({
-        width: width,
-        height: height,
+        width: 2200,
+        height: 1200,
         transparent: false, // Fondo sólido (ya no es transparente)
         frame: true, // Muestra bordes y barra de título (Cerrar, Minimizar)
         alwaysOnTop: false, // Ya no flota encima de todo obligatoriamente
         hasShadow: true, // Sombra nativa de ventana estándar
-        backgroundColor: '#2e2c29', // (Opcional) Color de fondo inicial para evitar destellos blancos al cargar
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
             preload: path.join(__dirname, 'preload.js'),
         },
     });
-    // LÓGICA DE CONEXIÓN:
     const isDev = process.argv.includes('--serve');
     if (isDev) {
         // En desarrollo: Carga el servidor de Angular (ng serve)

@@ -93,29 +93,41 @@ class LogWatcher extends events_1.EventEmitter {
                 return;
             const jsonString = line.substring(jsonStartIndex);
             let data = JSON.parse(jsonString);
-            // Desempaquetado del Payload (MTGA Log Logic)
+            // CASO 1: Quick Draft / Bot Draft (Payload anidado)
+            // Estructura: { Payload: "{\"DraftPack\": [\"123\", \"456\"] ... }" }
             if (data.Payload && typeof data.Payload === 'string') {
                 try {
                     const internalData = JSON.parse(data.Payload);
                     data = { ...data, ...internalData };
                 }
                 catch (innerError) {
-                    // A veces el payload no es JSON, lo ignoramos
+                    // Ignoramos si falla el payload interno
                 }
             }
-            // Validamos si es un evento útil
-            if (data.DraftPack) {
-                console.log('📦 Evento Draft PACK encontrado (Cartas detectadas).');
-                this.emit('draft-pack', data);
+            // --- NORMALIZACIÓN DE CARTAS ---
+            let finalPack = [];
+            // Detectar formato Bot (Array explícito)
+            if (data.DraftPack && Array.isArray(data.DraftPack)) {
+                finalPack = data.DraftPack;
+            }
+            // Detectar formato Humano/Premier (String separado por comas)
+            // Ejemplo: "PackCards": "96044,96155,95979"
+            else if (data.PackCards && typeof data.PackCards === 'string') {
+                finalPack = data.PackCards.split(',').map((id) => id.trim());
+            }
+            // EMISIÓN
+            if (finalPack.length > 0) {
+                console.log(`📦 Evento Draft PACK encontrado (${finalPack.length} cartas).`);
+                // Estandarizamos el evento: Angular siempre recibirá un array 'DraftPack'
+                // Sobreescribimos la propiedad DraftPack con nuestro array limpio
+                const eventData = { ...data, DraftPack: finalPack };
+                this.emit('draft-pack', eventData);
             }
             else if (data.DraftStatus) {
                 console.log('ℹ️ Evento Draft STATUS (Pick realizado o cambio de fase).');
-                // Opcional: this.emit('draft-status', data);
             }
         }
         catch (e) {
-            // Si falla aquí, suele ser porque la línea aún no estaba completa,
-            // pero con el sistema de buffer esto no debería ocurrir casi nunca.
             console.error('❌ Error parseando JSON en processDraftLine:', e);
         }
     }

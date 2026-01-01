@@ -9,8 +9,8 @@ function createWindow() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
   win = new BrowserWindow({
-    width: width,
-    height: height,
+    width: 2200,
+    height: 1200,
     transparent: false, // Fondo sólido (ya no es transparente)
     frame: true, // Muestra bordes y barra de título (Cerrar, Minimizar)
     alwaysOnTop: false, // Ya no flota encima de todo obligatoriamente
@@ -22,7 +22,6 @@ function createWindow() {
     },
   });
 
-  // LÓGICA DE CONEXIÓN:
   const isDev = process.argv.includes('--serve');
 
   if (isDev) {
