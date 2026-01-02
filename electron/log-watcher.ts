@@ -13,6 +13,7 @@ export class LogWatcher extends EventEmitter {
   private lineBuffer: string = '';
 
   constructor() {
+    //%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA
     super();
     this.logPath = path.join(
       os.homedir(),
