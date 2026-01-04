@@ -45,6 +45,17 @@ function createWindow() {
     win?.webContents.send('draft-update', data);
   });
 
+  watcher.on('draft-pick', (data) => {
+    console.log('👉 Pick detectado! Enviando a Angular:', data);
+    // Enviamos los datos a la ventana usando un canal nuevo 'draft-pick'
+    win?.webContents.send('draft-pick', data);
+  });
+
+  watcher.on('current-deck', (data) => {
+    console.log('📂 Mazo de Draft cargado desde el log');
+    win?.webContents.send('draft-deck-loaded', data);
+  });
+
   // Arrancarlo
   watcher.start();
 }

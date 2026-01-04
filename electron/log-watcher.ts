@@ -8,12 +8,12 @@ export class LogWatcher extends EventEmitter {
   private currentSize: number = 0;
   private isWatching: boolean = false;
   private checkInterval: NodeJS.Timeout | null = null;
-
-  // NUEVO: Un buffer para guardar líneas cortadas entre chunks
   private lineBuffer: string = '';
 
+  // NUEVO: Bandera para saber si estamos esperando un JSON en la siguiente línea
+  private pendingEventType: 'Courses' | 'DraftPick' | 'GetDeck' | null = null;
+
   constructor() {
-    //%USERPROFILE%\AppData\LocalLow\Wizards Of The Coast\MTGA
     super();
     this.logPath = path.join(
       os.homedir(),
@@ -36,10 +36,15 @@ export class LogWatcher extends EventEmitter {
 
     try {
       const stats = fs.statSync(this.logPath);
-      this.currentSize = stats.size;
-      console.log(`✅ Archivo encontrado. Tamaño inicial: ${this.currentSize} bytes.`);
+      // Leemos desde el principio (0) para capturar el estado inicial al abrir la app
+      this.currentSize = 0;
+      console.log(`✅ Archivo encontrado. Leyendo historial...`);
 
       this.isWatching = true;
+
+      // Primera lectura inmediata
+      this.checkUpdates();
+
       this.checkInterval = setInterval(() => this.checkUpdates(), 1000);
       console.log('👀 Vigilancia activa...');
     } catch (error) {
@@ -54,12 +59,11 @@ export class LogWatcher extends EventEmitter {
       const stats = fs.statSync(this.logPath);
       if (stats.size === this.currentSize) return;
 
-      console.log(`⚡ CAMBIO DETECTADO! Nuevo tamaño: ${stats.size}`);
-
       if (stats.size < this.currentSize) {
         console.log('🔄 El archivo se reinició.');
         this.currentSize = 0;
-        this.lineBuffer = ''; // Limpiamos buffer si el archivo se reinicia
+        this.lineBuffer = '';
+        this.pendingEventType = null;
       }
 
       const stream = fs.createReadStream(this.logPath, {
@@ -69,26 +73,19 @@ export class LogWatcher extends EventEmitter {
       });
 
       stream.on('data', (chunk: string | Buffer) => {
-        // 1. Añadimos el nuevo chunk a lo que sobró de la vez anterior
         this.lineBuffer += chunk.toString();
-
-        // 2. Partimos por saltos de línea
         const lines = this.lineBuffer.split('\n');
-
-        // 3. IMPORTANTE: La última línea del array suele estar incompleta
-        // (es el corte del chunk). La sacamos del array y la guardamos para el siguiente ciclo.
         this.lineBuffer = lines.pop() || '';
 
-        // 4. Procesamos todas las líneas que SÍ están completas
         for (const line of lines) {
-          this.processLineCheck(line);
+          if (line.trim().length > 0) {
+            // Ignorar líneas vacías
+            this.processLineCheck(line);
+          }
         }
       });
 
       stream.on('end', () => {
-        // Al terminar de leer el bloque actual, actualizamos el tamaño.
-        // Nota: NO procesamos this.lineBuffer aquí, porque esperamos que se complete
-        // en la siguiente lectura si quedó algo pendiente.
         this.currentSize = stats.size;
       });
 
@@ -100,11 +97,94 @@ export class LogWatcher extends EventEmitter {
     }
   }
 
-  // He renombrado parseChunk a processLineCheck para que sea más claro
   private processLineCheck(line: string) {
-    // Filtro rápido para no perder tiempo parseando basura
-    if ((line.includes('Draft.Notify') || line.includes('BotDraft')) && line.includes('{')) {
-      this.processDraftLine(line);
+    // -----------------------------------------------------
+    // CASO A: Estamos esperando un JSON de la línea anterior
+    // -----------------------------------------------------
+    if (this.pendingEventType) {
+      if (line.trim().startsWith('{')) {
+        console.log(`puzzle_piece JSON encontrado para ${this.pendingEventType}. Procesando...`);
+
+        if (this.pendingEventType === 'Courses') {
+          this.processCourses(line);
+        } else if (this.pendingEventType === 'DraftPick') {
+          this.processPickLine(line, true); // true = es solo el json
+        } else if (this.pendingEventType === 'GetDeck') {
+          // Si implementas editar mazo, aquí iría
+        }
+
+        // Ya procesamos, reseteamos la bandera
+        this.pendingEventType = null;
+        return; // Terminamos con esta línea
+      } else {
+        // Si la línea siguiente no empieza con {, cancelamos la espera
+        // (a veces hay logs basura entre medio)
+        // Opcional: Podrías no resetear si quieres ser más permisivo
+        // this.pendingEventType = null;
+      }
+    }
+
+    // -----------------------------------------------------
+    // CASO B: Buscamos encabezados nuevos
+    // -----------------------------------------------------
+
+    // 1. DRAFT PACKS (Suelen venir en la misma línea, pero por si acaso)
+    if (line.includes('Draft.Notify') || line.includes('BotDraft')) {
+      if (line.includes('{')) {
+        this.processDraftLine(line);
+      }
+    }
+
+    // 2. PICKS
+    if (line.includes('EventPlayerDraftMakePick') && line.includes('==>')) {
+      // A veces viene en la misma línea, a veces no.
+      if (line.includes('{')) {
+        this.processPickLine(line);
+      } else {
+        this.pendingEventType = 'DraftPick';
+      }
+    }
+
+    // 3. COURSES (Mazos activos / Inicio de sesión)
+    if (line.includes('EventGetCoursesV2') && line.includes('<==')) {
+      console.log('📚 Detectada cabecera EventGetCoursesV2.');
+      if (line.includes('{')) {
+        // Está en la misma línea
+        this.processCourses(line);
+      } else {
+        // Está en la siguiente línea
+        console.log('⏳ Esperando JSON de Courses en la siguiente línea...');
+        this.pendingEventType = 'Courses';
+      }
+    }
+  }
+
+  // --- Lógica para procesar el Pick ---
+  private processPickLine(line: string, jsonOnly: boolean = false) {
+    try {
+      const jsonStartIndex = line.indexOf('{');
+      if (jsonStartIndex === -1) return;
+
+      const jsonString = line.substring(jsonStartIndex);
+      const outerData = JSON.parse(jsonString);
+
+      // El campo 'request' es un string que contiene OTRO json dentro
+      if (outerData.request && typeof outerData.request === 'string') {
+        const requestData = JSON.parse(outerData.request);
+        const cardId = requestData.GrpIds ? requestData.GrpIds[0] : null;
+
+        if (cardId) {
+          console.log(`POINT 👉 Pick detectado: ID ${cardId}`);
+          this.emit('draft-pick', {
+            draftId: requestData.DraftId,
+            packNumber: requestData.Pack,
+            pickNumber: requestData.Pick,
+            cardId: cardId,
+          });
+        }
+      }
+    } catch (e) {
+      console.error('❌ Error parseando Pick:', e);
     }
   }
 
@@ -116,45 +196,85 @@ export class LogWatcher extends EventEmitter {
       const jsonString = line.substring(jsonStartIndex);
       let data = JSON.parse(jsonString);
 
-      // CASO 1: Quick Draft / Bot Draft (Payload anidado)
-      // Estructura: { Payload: "{\"DraftPack\": [\"123\", \"456\"] ... }" }
       if (data.Payload && typeof data.Payload === 'string') {
         try {
           const internalData = JSON.parse(data.Payload);
           data = { ...data, ...internalData };
-        } catch (innerError) {
-          // Ignoramos si falla el payload interno
-        }
+        } catch (innerError) {}
       }
 
-      // --- NORMALIZACIÓN DE CARTAS ---
       let finalPack: string[] = [];
-
-      // Detectar formato Bot (Array explícito)
       if (data.DraftPack && Array.isArray(data.DraftPack)) {
         finalPack = data.DraftPack;
-      }
-      // Detectar formato Humano/Premier (String separado por comas)
-      // Ejemplo: "PackCards": "96044,96155,95979"
-      else if (data.PackCards && typeof data.PackCards === 'string') {
+      } else if (data.PackCards && typeof data.PackCards === 'string') {
         finalPack = data.PackCards.split(',').map((id: string) => id.trim());
       }
 
-      // EMISIÓN
       if (finalPack.length > 0) {
-        console.log(`📦 Evento Draft PACK encontrado (${finalPack.length} cartas).`);
-
-        // Estandarizamos el evento: Angular siempre recibirá un array 'DraftPack'
-        // Sobreescribimos la propiedad DraftPack con nuestro array limpio
-        const eventData = { ...data, DraftPack: finalPack };
-
-        this.emit('draft-pack', eventData);
-      } else if (data.DraftStatus) {
-        console.log('ℹ️ Evento Draft STATUS (Pick realizado o cambio de fase).');
+        console.log(`📦 Pack encontrado (${finalPack.length} cartas).`);
+        this.emit('draft-pack', { ...data, DraftPack: finalPack });
       }
     } catch (e) {
-      console.error('❌ Error parseando JSON en processDraftLine:', e);
+      console.error('❌ Error parseando DraftLine:', e);
     }
+  }
+
+  private processCourses(line: string) {
+    try {
+      const jsonStartIndex = line.indexOf('{');
+      if (jsonStartIndex === -1) return;
+
+      const jsonString = line.substring(jsonStartIndex);
+      const data = JSON.parse(jsonString);
+
+      if (data.Courses && Array.isArray(data.Courses)) {
+        // Buscamos cualquier curso de Draft o Sealed que tenga cartas
+        const draftCourses = data.Courses.filter(
+          (c: any) =>
+            c.InternalEventName &&
+            (c.InternalEventName.toLowerCase().includes('draft') ||
+              c.InternalEventName.toLowerCase().includes('sealed')) &&
+            c.CourseDeck &&
+            (c.CourseDeck.MainDeck || c.CourseDeck.CardPool),
+        );
+
+        if (draftCourses.length > 0) {
+          // Tomamos el último de la lista, suele ser el más reciente
+          const activeDraft = draftCourses[draftCourses.length - 1];
+
+          console.log('📂 Evento Limitado encontrado:', activeDraft.InternalEventName);
+
+          const mainDeck = activeDraft.CourseDeck.MainDeck || [];
+          const sideboard = activeDraft.CourseDeck.Sideboard || [];
+
+          // Enviamos al Store
+          this.emit('current-deck', {
+            source: 'course-v2',
+            eventId: activeDraft.InternalEventName,
+            main: this.flattenDeck(mainDeck),
+            side: this.flattenDeck(sideboard),
+          });
+        } else {
+          console.log(
+            '⚠️ EventGetCoursesV2 procesado, pero no se encontraron eventos de Draft activos.',
+          );
+        }
+      }
+    } catch (e) {
+      console.error('❌ Error procesando EventGetCoursesV2:', e);
+    }
+  }
+
+  private flattenDeck(cardList: any[]): number[] {
+    const flat: number[] = [];
+    if (!Array.isArray(cardList)) return flat;
+
+    cardList.forEach((c) => {
+      for (let i = 0; i < c.quantity; i++) {
+        flat.push(c.cardId);
+      }
+    });
+    return flat;
   }
 
   stop() {

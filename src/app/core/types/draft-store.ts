@@ -105,3 +105,13 @@ export enum ViewMode {
   BoosterRanking = 'booster-ranking',
   Graphs = 'graphs',
 }
+
+export type DeckZone = 'main' | 'sideboard';
+
+export interface DraftPick {
+  zone: DeckZone;
+  draftId: string;
+  packNumber: number;
+  pickNumber: number;
+  cardId: number;
+}

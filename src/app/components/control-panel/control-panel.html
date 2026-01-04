@@ -4,9 +4,10 @@
   <mat-form-field>
     <mat-label>Collection</mat-label>
     <mat-select formControlName="currentSet">
-      <mat-option [value]="'TLA'">TLA</mat-option>
-      <mat-option [value]="'FIN'">FIN</mat-option>
-      <mat-option [value]="'EOE'">EOE</mat-option>
+      <mat-option [value]="'MID'">MID - Midnight Hunt</mat-option>
+      <mat-option [value]="'TLA'">TLA - The Last Airbender</mat-option>
+      <mat-option [value]="'FIN'">FIN - Final Fantasy</mat-option>
+      <mat-option [value]="'EOE'">EOE - Edge of Eternities</mat-option>
       <mat-option [value]="'TDM'">TDM</mat-option>
     </mat-select>
   </mat-form-field>
@@ -61,6 +62,15 @@
       <mat-option [value]="ColorFilter.BRG">Negro/Rojo/Verde (BRG)</mat-option>
       <mat-option [value]="ColorFilter.WUBRG">5 Colores (WUBRG)</mat-option>
     </mat-select>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Rango de Fechas</mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+      <input matStartDate formControlName="startDate" placeholder="Inicio" />
+      <input matEndDate formControlName="endDate" placeholder="Fin" />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
   </mat-form-field>
   <div class="toggle">
     <mat-button-toggle-group formControlName="viewMode" aria-label="View Mode">

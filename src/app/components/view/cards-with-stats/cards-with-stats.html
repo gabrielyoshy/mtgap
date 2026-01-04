@@ -4,6 +4,7 @@
       class="card-wrapper"
       [class]="getTierClass(card.tier)"
       [class.is-best-card]="card.bestCard"
+      (click)="onCardClick(card.mtgaId)"
     >
       <div class="image-section">
         <img [src]="card.imageUrl" [alt]="card.name" loading="lazy" />

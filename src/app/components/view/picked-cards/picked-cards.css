@@ -1,0 +1,203 @@
+:host {
+  /* Reutilizamos tus variables */
+  --color-s: #a335ee;
+  --color-a: #0070dd;
+  --color-b: #1eff00;
+  --color-c: #ffffff;
+  --color-d: #9d9d9d;
+
+  display: block;
+  padding: 20px;
+  background-color: #0e0e0e;
+  height: 100%;
+}
+
+/* --- DASHBOARD SUPERIOR --- */
+.deck-dashboard {
+  display: flex;
+  gap: 20px;
+  background: #1b1b1b;
+  padding: 15px 25px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  margin-bottom: 25px;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #eee;
+}
+
+.power-text.high-power {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.bomb-count {
+  display: flex;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 4px;
+}
+.s-count {
+  color: var(--color-s);
+}
+.a-count {
+  color: var(--color-a);
+}
+
+.reset-btn {
+  margin-left: auto;
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.reset-btn:hover {
+  background: #444;
+}
+
+/* --- GRID --- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Cartas más pequeñas */
+  gap: 12px;
+}
+
+/* --- MINI CARD STYLES (Adaptado) --- */
+.card-wrapper {
+  background: #1b1b1b;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #333;
+  /* El color del borde depende del tier */
+  border-color: var(--tier-color, #333);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+}
+
+.card-wrapper:hover {
+  transform: translateY(-4px);
+  z-index: 2;
+  box-shadow: 0 0 10px var(--tier-color);
+}
+
+/* Colores dinámicos por Tier */
+.tier-s {
+  --tier-color: var(--color-s);
+}
+.tier-a {
+  --tier-color: var(--color-a);
+}
+.tier-b {
+  --tier-color: var(--color-b);
+}
+.tier-c {
+  --tier-color: var(--color-c);
+}
+.tier-d {
+  --tier-color: var(--color-d);
+}
+
+.image-section {
+  height: 110px; /* Más pequeño que la vista principal */
+  background: #000;
+  position: relative;
+}
+
+.image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0.9;
+}
+
+.tier-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--tier-color);
+  color: var(--tier-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.pick-order-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.info-section {
+  padding: 8px;
+}
+
+.name {
+  font-size: 0.75rem;
+  color: #ddd;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-mini {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.wr-value {
+  color: var(--tier-color);
+  font-weight: bold;
+}
+.iwd-value {
+  color: #4caf50;
+}
+
+.empty-pool {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #666;
+  padding: 50px;
+  border: 2px dashed #333;
+  border-radius: 12px;
+}

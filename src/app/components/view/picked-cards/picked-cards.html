@@ -1,0 +1,117 @@
+<div class="pool-container">
+  <div class="deck-dashboard">
+    <div class="stat-box">
+      <span class="stat-label">sideboard</span>
+      <span class="stat-number">{{ sideboardCards().length }}</span>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    @for (card of sideboardCards(); track card) {
+      <div
+        class="card-wrapper"
+        [class]="getTierClass(card!.tier)"
+        (click)="store.toggleZone(card!.sourceRef.packNumber, card!.sourceRef.pickNumber)"
+      >
+        <div class="pick-order-badge">
+          {{ card!['pickedAt'] }}
+        </div>
+
+        <div class="image-section">
+          <img [src]="card!.imageUrl" [alt]="card!.name" loading="lazy" />
+          <div class="tier-badge">{{ card!.tier }}</div>
+        </div>
+
+        <div class="info-section">
+          <div class="card-header">
+            <h3 class="name">{{ card!.name }}</h3>
+          </div>
+
+          <div class="stats-mini">
+            <span class="wr-value">{{ card!.everDrawnWinRate | percent: '1.1-1' }} WR</span>
+            @if (card!.drawnImprovementWinRate > 0) {
+              <span class="iwd-value"
+                >+{{ card!.drawnImprovementWinRate | percent: '1.1-1' }} IWD</span
+              >
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-pool">
+        <h3>Tu pool está vacío</h3>
+        <p>Selecciona cartas o inicia un draft para ver estadísticas.</p>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="pool-container">
+  <div class="deck-dashboard">
+    <div class="stat-box">
+      <span class="stat-label">main</span>
+      <span class="stat-number">{{ mainCards().length }}</span>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Avg WR Power</span>
+      <span class="stat-number power-text" [class.high-power]="deckStats().avgWr > 0.58">
+        {{ deckStats().avgWr | percent: '1.1-1' }}
+      </span>
+    </div>
+
+    <div class="stat-box tiers">
+      <span class="stat-label">Bombas</span>
+      <div class="bomb-count">
+        <span class="s-count">S: {{ deckStats().sTier }}</span>
+        <span class="a-count">A: {{ deckStats().aTier }}</span>
+      </div>
+    </div>
+
+    <button class="reset-btn" (click)="store.resetDraft()">Reset Pool</button>
+  </div>
+
+  <div class="cards-grid">
+    @for (card of mainCards(); track card) {
+      <div
+        class="card-wrapper"
+        [class]="getTierClass(card!.tier)"
+        (click)="store.toggleZone(card!.sourceRef.packNumber, card!.sourceRef.pickNumber)"
+      >
+        <div class="pick-order-badge">
+          {{ card!['pickedAt'] }}
+        </div>
+
+        <div class="image-section">
+          <img [src]="card!.imageUrl" [alt]="card!.name" loading="lazy" />
+          <div class="tier-badge">{{ card!.tier }}</div>
+        </div>
+
+        <div class="info-section">
+          <div class="card-header">
+            <h3 class="name">{{ card!.name }}</h3>
+          </div>
+
+          <div class="stats-mini">
+            @if (card!.everDrawnWinRate > 0) {
+              <span class="wr-value">{{ card!.everDrawnWinRate | percent: '1.1-1' }} WR</span>
+            } @else {
+              <span class="wr-value">{{ card!.winRate | percent: '1.1-1' }} WR</span>
+            }
+
+            @if (card!.drawnImprovementWinRate > 0) {
+              <span class="iwd-value"
+                >+{{ card!.drawnImprovementWinRate | percent: '1.1-1' }} IWD</span
+              >
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-pool">
+        <h3>Tu pool está vacío</h3>
+        <p>Selecciona cartas o inicia un draft para ver estadísticas.</p>
+      </div>
+    }
+  </div>
+</div>
